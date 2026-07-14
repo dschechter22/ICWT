@@ -57,7 +57,6 @@ export default function RosterDrawer({ team, onClose }) {
     supabase
       .from('roster_entries')
       .select('*, player:player_id(id, name, position)')
-      .eq('league_id', LEAGUE_ID)
       .eq('team_id', team.id)
       .then(({ data }) => { setEntries(data || []); setLoading(false) })
   }, [team?.id])
