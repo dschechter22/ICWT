@@ -1,13 +1,8 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { createClient } from '@supabase/supabase-js'
+import { supabase, LEAGUE_ID } from '../lib/supabase'
 import { useRouter } from 'next/navigation'
 import { useLayout } from '../hooks/useLayout'
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-)
 
 function slotRoster(entries) {
   const byPos = { QB: [], RB: [], WR: [], TE: [], K: [], 'D/ST': [] }
@@ -62,6 +57,7 @@ export default function RosterDrawer({ team, onClose }) {
     supabase
       .from('roster_entries')
       .select('*, player:player_id(id, name, position)')
+      .eq('league_id', LEAGUE_ID)
       .eq('team_id', team.id)
       .then(({ data }) => { setEntries(data || []); setLoading(false) })
   }, [team?.id])
@@ -165,9 +161,10 @@ export default function RosterDrawer({ team, onClose }) {
     <>
       <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 300, backdropFilter: 'blur(4px)' }} />
       <div style={{
-        position: 'fixed', top: 0, right: 0, bottom: 0,
-        width: effectiveMobile ? '100vw' : '420px',
-        background: bg, borderLeft: `1px solid ${border}`,
+        position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+        width: effectiveMobile ? '95vw' : '480px',
+        maxHeight: '85vh',
+        background: bg, border: `1px solid ${border}`,
         zIndex: 301, overflowY: 'auto', display: 'flex', flexDirection: 'column',
       }}>
         {/* Header */}
