@@ -186,16 +186,20 @@ export default function WriteupsPage() {
     // Use body content if present, otherwise the whole fragment
     const root = temp.querySelector('body') || temp
     const convert = (node) => {
-      if (node.nodeType === Node.TEXT_NODE) return node.textContent
+      if (node.nodeType === Node.TEXT_NODE) {
+        // Collapse source-formatting whitespace (tabs, newlines) to spaces
+        return node.textContent.replace(/[\r\n\t]+/g, ' ')
+      }
       const tag = node.tagName?.toLowerCase()
       if (!tag || tag === 'style' || tag === 'script') return ''
-      // Word uses <o:p> as empty paragraph markers — skip
-      if (tag.includes(':')) return ''
+      if (tag.includes(':')) return '' // skip Word-specific tags like <o:p>
       const style = node.style || {}
       const children = Array.from(node.childNodes).map(convert).join('')
+      const trimmed = children.trim()
+      if (!trimmed) return '' // skip empty elements so they don't leave orphan newlines
       const isBold = tag === 'b' || tag === 'strong' || style.fontWeight === 'bold' || parseInt(style.fontWeight) >= 700
       const isItalic = tag === 'i' || tag === 'em' || style.fontStyle === 'italic'
-      let result = children
+      let result = trimmed
       if (isItalic) result = `*${result}*`
       if (isBold) result = `**${result}**`
       if (tag === 'p' || tag === 'div') result = result + '\n'
