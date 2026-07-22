@@ -61,7 +61,6 @@ export default function SeasonPage() {
   }
 
   const playoffTeams = teams.filter(t => t.made_playoffs).sort((a, b) => (a.playoff_seed ?? 99) - (b.playoff_seed ?? 99))
-  const is6Team = selectedYear >= 2021
 
   // Standings totals
   const standingsTotals = teams.length > 0 ? {
@@ -235,19 +234,6 @@ export default function SeasonPage() {
     )
   }
 
-  const ByeCard = ({ team }) => {
-    const seed = getPlayoffSeed(team?.id)
-    return (
-      <div style={{ border: `1px dashed ${border}`, padding: '9px 12px', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <span style={{ fontSize: '10px', color: gold, fontWeight: '700', minWidth: '14px' }}>{seed}</span>
-        <div>
-          <div style={{ fontFamily: "'Playfair Display', serif", fontSize: '13px', color: text }}>{team?.manager?.name}</div>
-          <div style={{ fontSize: '10px', color: muted }}>Bye — {team?.team_name}</div>
-        </div>
-      </div>
-    )
-  }
-
   const colStyle = { flex: 1, minWidth: effectiveMobile ? '150px' : '190px', maxWidth: effectiveMobile ? '170px' : '230px' }
   const roundLabel = (label) => <div style={{ fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', color: muted, marginBottom: '14px', textAlign: 'center' }}>{label}</div>
   const connector = <div style={{ width: '16px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={{ width: '16px', height: '1px', background: border }} /></div>
@@ -257,54 +243,36 @@ export default function SeasonPage() {
     return Math.min(getPlayoffSeed(ht?.id), getPlayoffSeed(at?.id))
   }
 
-  const render6TeamBracket = () => {
-    const r1Games = playoffMatchups.filter(m => m.week === playoffWeeks[0])
-    const r2Games = playoffMatchups.filter(m => m.week === playoffWeeks[1])
-    const r3Games = playoffMatchups.filter(m => m.week === playoffWeeks[2])
-    const byeTeam1 = playoffTeams.find(t => t.playoff_seed === 1)
-    const byeTeam2 = playoffTeams.find(t => t.playoff_seed === 2)
-    const sortedR1 = [...r1Games].sort((a, b) => getSeedMin(a) - getSeedMin(b))
-    const sortedR2 = [...r2Games].sort((a, b) => getSeedMin(a) - getSeedMin(b))
-    const championship = r3Games[0]
-    return (
-      <div style={{ display: 'flex', gap: '0', minWidth: effectiveMobile ? '500px' : '640px' }}>
-        <div style={colStyle}>
-          {roundLabel('Round 1')}
-          <ByeCard team={byeTeam1} />
-          <div style={{ height: '10px' }} />
-          <BracketGameCard game={sortedR1[0]} />
-          <div style={{ height: '20px' }} />
-          <BracketGameCard game={sortedR1[1]} />
-          <div style={{ height: '10px' }} />
-          <ByeCard team={byeTeam2} />
-        </div>
-        {connector}
-        <div style={colStyle}>
-          {roundLabel('Semifinals')}
-          <div style={{ height: '52px' }} />
-          <BracketGameCard game={sortedR2[0]} />
-          <div style={{ height: '20px' }} />
-          <BracketGameCard game={sortedR2[1]} />
-        </div>
-        {connector}
-        <div style={colStyle}>
-          {roundLabel('Championship')}
-          <div style={{ height: '90px' }} />
-          <BracketGameCard game={championship} />
-        </div>
-      </div>
-    )
-  }
-
   const render8TeamBracket = () => {
     const r1Games = playoffMatchups.filter(m => m.week === playoffWeeks[0])
     const r2Games = playoffMatchups.filter(m => m.week === playoffWeeks[1])
     const r3Games = playoffMatchups.filter(m => m.week === playoffWeeks[2])
+
+    const gameTeamIds = (g) => [
+      getTeamByManagerId(g.home_team?.manager_id)?.id,
+      getTeamByManagerId(g.away_team?.manager_id)?.id,
+    ]
+    const winnerTeamId = (g) => {
+      const [homeId, awayId] = gameTeamIds(g)
+      return g.home_score > g.away_score ? homeId : awayId
+    }
+
+    // Only the 8 playoff qualifiers ever reach round 1 -- every round-1 game counts.
     const sortedR1 = [...r1Games].sort((a, b) => getSeedMin(a) - getSeedMin(b))
     const topHalf = sortedR1.filter(g => getSeedMin(g) <= 2)
     const botHalf = sortedR1.filter(g => getSeedMin(g) > 2)
-    const sortedR2 = [...r2Games].sort((a, b) => getSeedMin(a) - getSeedMin(b))
-    const championship = r3Games[0]
+    const r1Winners = new Set(r1Games.map(winnerTeamId))
+
+    // Round 2 also carries the placement (5th-8th) bracket -- keep only the
+    // games between two round-1 winners; those are the true semifinals.
+    const semis = r2Games.filter(g => gameTeamIds(g).every(id => r1Winners.has(id)))
+    const sortedSemis = [...semis].sort((a, b) => getSeedMin(a) - getSeedMin(b))
+    const semiWinners = new Set(semis.map(winnerTeamId))
+
+    // Round 3 likewise carries the 3rd/5th/7th place games -- the championship
+    // is the one game between two semifinal winners.
+    const championship = r3Games.find(g => gameTeamIds(g).every(id => semiWinners.has(id)))
+
     return (
       <div style={{ display: 'flex', gap: '0', minWidth: effectiveMobile ? '500px' : '640px' }}>
         <div style={colStyle}>
@@ -317,9 +285,9 @@ export default function SeasonPage() {
         <div style={colStyle}>
           {roundLabel('Semifinals')}
           <div style={{ height: '46px' }} />
-          {sortedR2.slice(0, 1).map(g => <BracketGameCard key={g.id} game={g} />)}
+          {sortedSemis.slice(0, 1).map(g => <BracketGameCard key={g.id} game={g} />)}
           <div style={{ height: '20px' }} />
-          {sortedR2.slice(1, 2).map(g => <BracketGameCard key={g.id} game={g} />)}
+          {sortedSemis.slice(1, 2).map(g => <BracketGameCard key={g.id} game={g} />)}
         </div>
         {connector}
         <div style={colStyle}>
@@ -384,7 +352,7 @@ export default function SeasonPage() {
           <div style={{ marginBottom: '60px' }}>
             <p style={{ fontSize: '10px', letterSpacing: '0.25em', textTransform: 'uppercase', color: muted, marginBottom: '24px' }}>Playoff Bracket</p>
             <div style={{ overflowX: 'auto', paddingBottom: '8px' }}>
-              {is6Team ? render6TeamBracket() : render8TeamBracket()}
+              {render8TeamBracket()}
             </div>
           </div>
         )}
