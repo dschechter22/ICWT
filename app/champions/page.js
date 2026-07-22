@@ -78,7 +78,7 @@ export default function ChampionsPage() {
                 <span style={{ fontSize: '11px', color: muted }}>title{m.count !== 1 ? 's' : ''}</span>
               </div>
               {m.molBowls > 0 && (
-                <div style={{ fontSize: '11px', color: red, marginTop: '4px' }}>{m.molBowls} Mol Bowl{m.molBowls !== 1 ? 's' : ''}</div>
+                <div style={{ fontSize: '11px', color: red, marginTop: '4px' }}>{m.molBowls} Sacko{m.molBowls !== 1 ? 's' : ''}</div>
               )}
             </div>
           ))}
@@ -111,7 +111,7 @@ export default function ChampionsPage() {
                     </div>
                     {s.mol_bowl_loser && (
                       <div style={{ fontSize: '11px', color: red, marginTop: '2px' }}>
-                        Mol Bowl: {s.mol_bowl_loser.name}
+                        Sacko: {s.mol_bowl_loser.name}
                       </div>
                     )}
                   </div>
@@ -127,7 +127,7 @@ export default function ChampionsPage() {
                   <th style={hStyle('center')}>Year</th>
                   <th style={hStyle('center')}>Season</th>
                   <th style={hStyle()}>Champion</th>
-                  <th style={hStyle()}>Mol Bowl</th>
+                  <th style={hStyle()}>Sacko</th>
                 </tr>
               </thead>
               <tbody>

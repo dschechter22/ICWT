@@ -156,7 +156,7 @@ Normalized = (value - min) / (max - min)`}
             name="Points For (PF) / Points Against (PA)"
             tagline="Raw scoring totals"
             formula="PF = Sum of all scores in regular season games\nPA = Sum of all opponent scores in regular season games\nDiff = PF - PA\nPPG Diff = Diff / Games played"
-            notes="All point totals on this site are regular season only unless explicitly noted. Playoff games and Mol Bowl games are excluded from career and season totals."
+            notes="All point totals on this site are regular season only unless explicitly noted. Playoff games and Sacko games are excluded from career and season totals."
           />
           <Metric
             name="Win %"
@@ -164,10 +164,10 @@ Normalized = (value - min) / (max - min)`}
             notes="Ties are excluded from win percentage calculations. Playoff games are excluded unless the toggle is enabled."
           />
           <Metric
-            name="Mol Bowl"
-            tagline="The consolation bracket final"
-            formula="The Mol Bowl is the final game of the consolation bracket -- played between the two teams that lost their first two playoff games. The loser of the Mol Bowl finishes last."
-            notes="Mol Bowl games are tracked separately from the winner's bracket and are excluded from power score, luck, and all-play calculations. On the H2H page, Mol Bowl games are labeled separately from playoff games."
+            name="Sacko"
+            tagline="Last place, decided"
+            formula="The two teams that miss the playoffs play their own series across the postseason weeks to decide last place. The loser is crowned that season's Sacko."
+            notes="Sacko games are tracked separately from the playoff bracket and are excluded from power score, luck, and all-play calculations. On the H2H page, Sacko games are labeled separately from playoff games."
           />
         </Section>
 

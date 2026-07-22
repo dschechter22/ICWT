@@ -13,7 +13,7 @@ const supabase = createClient(
 const RESULT_OPTIONS = [
   'All', 'Champion', 'Runner Up', 'Third Place', '4th Place',
   '5th Place', '6th Place', '7th Place', '8th Place', '9th Place', '10th Place',
-  'Mol Bowl Winner', 'Mol Bowl Loser', 'Made Playoffs', 'Missed Playoffs'
+  'Sacko', 'Made Playoffs', 'Missed Playoffs'
 ]
 
 export default function AllTimeTeamsPage() {
@@ -123,7 +123,7 @@ export default function AllTimeTeamsPage() {
     if (result === 'Champion') return gold
     if (result === 'Runner Up') return d ? 'rgba(192,192,192,0.9)' : '#555'
     if (result === 'Third Place') return d ? '#cd7f32' : '#7c4a00'
-    if (result?.includes('Mol Bowl')) return red
+    if (result?.includes('Sacko')) return red
     return muted
   }
 
@@ -132,8 +132,7 @@ export default function AllTimeTeamsPage() {
     if (filterResult === 'Champion') return t.playoff_result === 'Champion'
     if (filterResult === 'Runner Up') return t.playoff_result === 'Runner Up'
     if (filterResult === 'Third Place') return t.playoff_result === 'Third Place'
-    if (filterResult === 'Mol Bowl Winner') return t.playoff_result === 'Mol Bowl Winner'
-    if (filterResult === 'Mol Bowl Loser') return t.playoff_result === 'Mol Bowl Loser'
+    if (filterResult === 'Sacko') return t.playoff_result === 'Sacko'
     if (filterResult === 'Made Playoffs') return t.made_playoffs
     if (filterResult === 'Missed Playoffs') return !t.made_playoffs
     const placeMap = { '4th Place': 4, '5th Place': 5, '6th Place': 6, '7th Place': 7, '8th Place': 8, '9th Place': 9, '10th Place': 10 }

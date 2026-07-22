@@ -219,7 +219,7 @@ export default function H2HPage() {
                         {tie ? 'T' : win ? 'W' : 'L'}
                       </td>
                       <td style={{ ...cStyle('center'), color: muted, fontSize: '11px' }}>
-                        {m.is_mol_bowl ? 'Mol Bowl' : m.is_playoff ? 'Playoff' : 'Reg'}
+                        {m.is_mol_bowl ? 'Sacko' : m.is_playoff ? 'Playoff' : 'Reg'}
                       </td>
                     </tr>
                   )
@@ -468,7 +468,7 @@ export default function H2HPage() {
                           {tie ? 'T' : win ? 'W' : 'L'}
                         </td>
                         <td style={{ ...cStyle('center'), color: muted, fontSize: '11px' }}>
-                          {m.is_mol_bowl ? 'Mol Bowl' : m.is_playoff ? 'Playoff' : 'Reg'}
+                          {m.is_mol_bowl ? 'Sacko' : m.is_playoff ? 'Playoff' : 'Reg'}
                         </td>
                       </tr>
                     )

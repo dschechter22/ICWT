@@ -432,8 +432,8 @@ export default function SeasonPage() {
                         <td style={{ ...cStyle('right'), color: diff >= 0 ? green : red, fontWeight: '500', cursor: 'pointer' }} onClick={() => setSelectedTeam(isSelected ? null : t.id)}>
                           {diff >= 0 ? '+' : ''}{diff.toFixed(effectiveMobile ? 0 : 2)}
                         </td>
-                        <td style={{ ...cStyle('center'), fontSize: '11px', color: t.playoff_result === 'Champion' ? gold : t.playoff_result?.includes('Mol Bowl') ? red : muted, cursor: 'pointer' }} onClick={() => setSelectedTeam(isSelected ? null : t.id)}>
-                          {effectiveMobile ? (t.playoff_result === 'Champion' ? '🏆' : t.playoff_result?.includes('Mol Bowl') ? 'Mol' : t.made_playoffs ? '✓' : '—') : (t.playoff_result || '—')}
+                        <td style={{ ...cStyle('center'), fontSize: '11px', color: t.playoff_result === 'Champion' ? gold : t.playoff_result?.includes('Sacko') ? red : muted, cursor: 'pointer' }} onClick={() => setSelectedTeam(isSelected ? null : t.id)}>
+                          {effectiveMobile ? (t.playoff_result === 'Champion' ? '🏆' : t.playoff_result?.includes('Sacko') ? 'Sko' : t.made_playoffs ? '✓' : '—') : (t.playoff_result || '—')}
                         </td>
                         <td style={{ ...cStyle('center') }}>
                           <button

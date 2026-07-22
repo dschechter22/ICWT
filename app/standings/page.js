@@ -213,7 +213,7 @@ export default function StandingsPage() {
           ['PF', m.pf.toFixed(0)],
           ['PA', m.pa.toFixed(0)],
           ['Diff', `${m.diff >= 0 ? '+' : ''}${m.diff.toFixed(0)}`],
-          ['Mol Bowls', m.molBowlLosses || '—'],
+          ['Sackos', m.molBowlLosses || '—'],
         ].map(([label, val]) => (
           <div key={label}>
             <div style={{ fontSize: '9px', letterSpacing: '0.15em', textTransform: 'uppercase', color: muted, marginBottom: '2px' }}>{label}</div>
@@ -232,7 +232,7 @@ export default function StandingsPage() {
               <div style={{ display: 'flex', gap: '12px', color: muted }}>
                 <span>{s.wins}-{s.losses}</span>
                 <span style={{ color: s.champion ? gold : s.mol_bowl_loss ? red : muted }}>
-                  {s.champion ? '🏆' : s.mol_bowl_loss ? 'Mol' : s.made_playoffs ? '✓' : ''}
+                  {s.champion ? '🏆' : s.mol_bowl_loss ? 'Sko' : s.made_playoffs ? '✓' : ''}
                 </span>
               </div>
             </div>
@@ -298,7 +298,7 @@ export default function StandingsPage() {
                   <th style={hStyle()} onClick={() => handleSort('ppgDiff')}>PPG Diff <SortIcon col="ppgDiff" /></th>
                   <th style={hStyle()} onClick={() => handleSort('championships')}>Titles <SortIcon col="championships" /></th>
                   <th style={hStyle()} onClick={() => handleSort('playoffAppearances')}>Playoffs <SortIcon col="playoffAppearances" /></th>
-                  <th style={hStyle()} onClick={() => handleSort('molBowlLosses')}>Mol Bowls <SortIcon col="molBowlLosses" /></th>
+                  <th style={hStyle()} onClick={() => handleSort('molBowlLosses')}>Sackos <SortIcon col="molBowlLosses" /></th>
                   <th style={hStyle('center')}></th>
                 </tr>
               </thead>
@@ -348,7 +348,7 @@ export default function StandingsPage() {
                                 <th style={hStyle()}>PPG Diff</th>
                                 <th style={hStyle()}>Playoffs</th>
                                 <th style={hStyle()}>Title</th>
-                                <th style={hStyle()}>Mol Bowl</th>
+                                <th style={hStyle()}>Sacko</th>
                                 <th style={hStyle()}></th>
                               </tr>
                             </thead>
@@ -365,7 +365,7 @@ export default function StandingsPage() {
                                   <td style={{ ...scStyle(), color: s.ppg_diff >= 0 ? green : red }}>{s.ppg_diff >= 0 ? '+' : ''}{s.ppg_diff}</td>
                                   <td style={{ ...scStyle(), color: s.made_playoffs ? green : muted }}>{s.made_playoffs ? 'Yes' : 'No'}</td>
                                   <td style={{ ...scStyle(), color: s.champion ? gold : muted }}>{s.champion ? 'Champion' : '—'}</td>
-                                  <td style={{ ...scStyle(), color: s.mol_bowl_loss ? red : muted }}>{s.mol_bowl_loss ? 'Loser' : '—'}</td>
+                                  <td style={{ ...scStyle(), color: s.mol_bowl_loss ? red : muted }}>{s.mol_bowl_loss ? 'Sacko' : '—'}</td>
                                   <td style={scStyle()}></td>
                                 </tr>
                               ))}

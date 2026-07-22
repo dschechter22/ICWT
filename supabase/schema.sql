@@ -43,7 +43,7 @@ create table teams (
   made_playoffs boolean not null default false,
   playoff_seed integer,
   final_standing integer,
-  playoff_result text, -- 'Champion' | 'Runner Up' | 'Third Place' | 'Mol Bowl Winner' | 'Mol Bowl Loser' | null
+  playoff_result text, -- 'Champion' | 'Runner Up' | 'Third Place' | 'Sacko' | null
   league_id integer default 1,
   unique (season_id, manager_id)
 );

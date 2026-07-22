@@ -255,7 +255,7 @@ export default function ManagersPage() {
     if (result === 'Champion') return gold
     if (result === 'Runner Up') return d ? 'rgba(192,192,192,0.9)' : '#555'
     if (result === 'Third Place') return d ? '#cd7f32' : '#7c4a00'
-    if (result?.includes('Mol Bowl')) return red
+    if (result?.includes('Sacko')) return red
     if (result?.includes('Playoff')) return blue
     return muted
   }
@@ -341,7 +341,7 @@ export default function ManagersPage() {
                       ['Point Diff', `${m.diff >= 0 ? '+' : ''}${m.diff.toFixed(0)}`, m.diff >= 0 ? green : red],
                       ['Championships', m.championships || '—', m.championships > 0 ? gold : null],
                       ['Playoff Apps', m.playoffAppearances, null],
-                      ['Mol Bowl Losses', m.molBowls || '—', m.molBowls > 0 ? red : null],
+                      ['Sackos', m.molBowls || '—', m.molBowls > 0 ? red : null],
                       ['Avg Power Score', m.avgPowerScore, null],
                       ['Career Power Rank', `#${m.careerPowerRank}`, m.careerPowerRank <= 3 ? gold : null],
                       ['Best Season', m.bestSeason ? `${m.bestSeason.season?.year || m.bestSeason.year} — ${(powerScores[m.bestSeason.id] ?? m.bestSeason.ps)?.toFixed(1)} PS` : '—', green],
