@@ -118,6 +118,18 @@ export default function AllTimeTeamsPage() {
     return result
   }, [teams, matchups])
 
+  const ordinal = (n) => {
+    const suffixes = ['th', 'st', 'nd', 'rd']
+    const v = n % 100
+    return `${n}${suffixes[(v - 20) % 10] || suffixes[v] || suffixes[0]}`
+  }
+
+  const resultLabel = (t) => {
+    if (t.playoff_result) return t.playoff_result
+    if (t.final_standing) return `${ordinal(t.final_standing)} Place`
+    return t.made_playoffs ? 'Playoffs' : '—'
+  }
+
   const resultColor = (result) => {
     if (!result) return muted
     if (result === 'Champion') return gold
@@ -136,7 +148,7 @@ export default function AllTimeTeamsPage() {
     if (filterResult === 'Made Playoffs') return t.made_playoffs
     if (filterResult === 'Missed Playoffs') return !t.made_playoffs
     const placeMap = { '4th Place': 4, '5th Place': 5, '6th Place': 6, '7th Place': 7, '8th Place': 8, '9th Place': 9, '10th Place': 10 }
-    if (placeMap[filterResult]) return !t.made_playoffs && t.final_standing === placeMap[filterResult]
+    if (placeMap[filterResult]) return t.final_standing === placeMap[filterResult]
     return true
   }
 
@@ -240,7 +252,7 @@ export default function AllTimeTeamsPage() {
           </div>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             <div style={{ fontSize: '12px', color: resultColor(t.playoff_result), fontWeight: '500' }}>
-              {t.playoff_result || (t.made_playoffs ? 'Playoffs' : '—')}
+              {resultLabel(t)}
             </div>
             <button onClick={() => setRosterTeam(t)} style={{ background: 'none', border: `1px solid ${border}`, color: muted, padding: '3px 7px', cursor: 'pointer', fontSize: '11px' }}>📋</button>
           </div>
@@ -342,7 +354,7 @@ export default function AllTimeTeamsPage() {
                     <td style={{ ...cStyle(), color: t.ppgDiff >= 0 ? green : red, fontWeight: '500' }}>{t.ppgDiff >= 0 ? '+' : ''}{t.ppgDiff}</td>
                     <td style={{ ...cStyle(), color: t.powerScore !== null ? text : muted }}>{t.powerScore !== null ? t.powerScore.toFixed(1) : '—'}</td>
                     <td style={{ ...cStyle(), color: t.luck !== null ? (t.luck >= 0 ? green : red) : muted, fontWeight: '500' }}>{t.luck !== null ? (t.luck >= 0 ? `+${t.luck}` : `${t.luck}`) : '—'}</td>
-                    <td style={{ ...cStyle('center'), color: resultColor(t.playoff_result), fontSize: '12px', fontWeight: '500', minWidth: '110px' }}>{t.playoff_result || (t.made_playoffs ? 'Playoffs' : '—')}</td>
+                    <td style={{ ...cStyle('center'), color: resultColor(t.playoff_result), fontSize: '12px', fontWeight: '500', minWidth: '110px' }}>{resultLabel(t)}</td>
                   </tr>
                 ))}
                 {avgRow && (
