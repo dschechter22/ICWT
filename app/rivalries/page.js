@@ -63,13 +63,34 @@ const RIVALRY_SYNOPSES = {
   [pairKey('drew', 'beast')]: `Drew coined "#hatebeast," making him Beast's defining rival.`,
   [pairKey('drew', 'frank')]: `Best friends who bicker constantly -- rumored to secretly be a couple.`,
   [pairKey('frankel', 'bt')]: `Friends since Twin Groves middle school, bonded by a shared baseball rivalry.`,
+  [pairKey('freed', 'beast')]: `Frequent back-and-forth -- the two just enjoy sparring in the group chat.`,
+}
+
+// Fixed heat scores, set by the league -- not computed from stats.
+const RIVALRY_HEAT = {
+  [pairKey('frank', 'aj')]: 100,
+  [pairKey('bt', 'freed')]: 98,
+  [pairKey('dan', 'frank')]: 97,
+  [pairKey('drew', 'beast')]: 95,
+  [pairKey('justin', 'drew')]: 94,
+  [pairKey('aj', 'justin')]: 93,
+  [pairKey('dan', 'frankel')]: 91,
+  [pairKey('aj', 'drew')]: 90,
+  [pairKey('drew', 'frank')]: 89,
+  [pairKey('frankel', 'bt')]: 87,
+  [pairKey('aiden', 'beast')]: 85,
+  [pairKey('dan', 'bt')]: 84,
+  [pairKey('aiden', 'frankel')]: 83,
+  [pairKey('aiden', 'bt')]: 81,
+  [pairKey('freed', 'beast')]: 80,
+  [pairKey('justin', 'beast')]: 78,
 }
 
 // Flavor storyline, not tied to any single rivalry.
 const CHAT_ROOMITES = ['dan', 'freed']
 
 export default function RivalriesPage() {
-  const { d, effectiveMobile, bg, text, muted, border, cardBg, gold } = useLayout()
+  const { d, effectiveMobile, bg, text, muted, border, cardBg, gold, red, blue } = useLayout()
 
   const [managers, setManagers] = useState([])
   const [matchups, setMatchups] = useState([])
@@ -113,7 +134,6 @@ export default function RivalriesPage() {
 
     const games = allGames.length
     const avgMargin = parseFloat((totalMargin / games).toFixed(2))
-    const closeness = 1 - Math.abs(winsA - winsB) / games
     const recentMomentum = recentWinsA > recentWinsB ? managerA : recentWinsA < recentWinsB ? managerB : null
 
     let biggestGame = null
@@ -140,18 +160,7 @@ export default function RivalriesPage() {
       mostRecentWinner = scoreA > scoreB ? managerA : managerB
     }
 
-    return { games, winsA, winsB, avgMargin, closeness, playoffMeetings, recentMomentum, biggestGame, mostRecent, mostRecentWinner }
-  }
-
-  // Cosmetic heat score from live head-to-head stats -- doesn't affect
-  // curated rank/order, just flavors the card.
-  const getHeatScore = (stats) => {
-    if (!stats) return null
-    const closenessScore = stats.closeness
-    const volumeScore = Math.min(stats.games / 20, 1)
-    const marginScore = Math.max(0, 1 - (stats.avgMargin / 50))
-    const playoffScore = Math.min(stats.playoffMeetings / 3, 1)
-    return Math.round((closenessScore * 0.35 + volumeScore * 0.25 + marginScore * 0.25 + playoffScore * 0.15) * 100)
+    return { games, winsA, winsB, avgMargin, playoffMeetings, recentMomentum, biggestGame, mostRecent, mostRecentWinner }
   }
 
   const leagueRivalries = useMemo(() => {
@@ -164,6 +173,7 @@ export default function RivalriesPage() {
         managerA, managerB,
         stats: getRivalryStats(managerA, managerB),
         synopsis: RIVALRY_SYNOPSES[pairKey(slugA, slugB)],
+        heat: RIVALRY_HEAT[pairKey(slugA, slugB)] ?? null,
       }
     }).filter(Boolean)
   }, [managers, matchups, bySlug])
@@ -179,6 +189,7 @@ export default function RivalriesPage() {
         managerA: manager, managerB: opponent,
         stats: getRivalryStats(manager, opponent),
         synopsis: RIVALRY_SYNOPSES[pairKey(manager.slug, slug)],
+        heat: RIVALRY_HEAT[pairKey(manager.slug, slug)] ?? null,
       }
     }).filter(Boolean)
   }
@@ -190,40 +201,40 @@ export default function RivalriesPage() {
   ) : null
 
   const RivalryCard = ({ rivalry }) => {
-    const { managerA, managerB, stats, synopsis, rank } = rivalry
+    const { managerA, managerB, stats, synopsis, heat } = rivalry
     const leadingManager = stats && stats.winsA > stats.winsB ? managerA : stats && stats.winsB > stats.winsA ? managerB : null
-    const heat = getHeatScore(stats)
 
     return (
       <div style={{ background: cardBg, border: `1px solid ${border}`, padding: effectiveMobile ? '16px' : '24px', marginBottom: '1px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: '10px', letterSpacing: '0.15em', textTransform: 'uppercase', color: rank === 1 ? gold : muted, marginBottom: '6px' }}>
-              Rivalry #{rank}
-            </div>
-            <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: effectiveMobile ? '18px' : '22px', color: text, fontWeight: '400', marginBottom: heat !== null ? '8px' : 0 }}>
-              {managerA.name}<ChatRoomiteTag slug={managerA.slug} /> vs {managerB.name}<ChatRoomiteTag slug={managerB.slug} />
-            </h3>
-            {heat !== null && (
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-                <span style={{ fontFamily: "'Playfair Display', serif", fontSize: effectiveMobile ? '22px' : '26px', color: text, lineHeight: 1, fontWeight: '400' }}>
-                  {heat}
-                </span>
-                <span style={{ fontSize: '9px', letterSpacing: '0.1em', textTransform: 'uppercase', color: muted }}>/ 100 heat</span>
-              </div>
-            )}
-          </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: effectiveMobile ? '18px' : '22px', color: text, fontWeight: '400' }}>
+            {managerA.name}<ChatRoomiteTag slug={managerA.slug} /> vs {managerB.name}<ChatRoomiteTag slug={managerB.slug} />
+          </h3>
           {stats && (
             <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: '16px' }}>
               <div style={{ fontFamily: "'Playfair Display', serif", fontSize: effectiveMobile ? '24px' : '28px', color: text, marginBottom: '2px' }}>
                 {stats.winsA}–{stats.winsB}
               </div>
-              <div style={{ fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: muted }}>
+              <div style={{ fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: blue, fontWeight: '600' }}>
                 {leadingManager ? `${leadingManager.name.split(' ')[0]} leads` : 'Even'}
               </div>
             </div>
           )}
         </div>
+
+        {heat !== null && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+              <span style={{ fontFamily: "'Playfair Display', serif", fontSize: effectiveMobile ? '28px' : '32px', color: text, lineHeight: 1, fontWeight: '400' }}>
+                {heat}
+              </span>
+              <span style={{ fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: muted }}>/ 100</span>
+            </div>
+            <span style={{ fontSize: '9px', letterSpacing: '0.1em', textTransform: 'uppercase', color: red, border: `1px solid ${red}`, padding: '2px 6px', fontWeight: '600' }}>
+              Named Rival
+            </span>
+          </div>
+        )}
 
         {synopsis && (
           <p style={{ fontSize: '13px', color: muted, lineHeight: 1.6, marginBottom: '14px', fontStyle: 'italic' }}>
@@ -235,14 +246,14 @@ export default function RivalriesPage() {
           <>
             <div style={{ display: 'grid', gridTemplateColumns: `repeat(${effectiveMobile ? 3 : 4}, 1fr)`, gap: '12px', marginBottom: '12px' }}>
               {[
-                ['Games', stats.games],
-                ['Avg Margin', `${stats.avgMargin} pts`],
-                ['Playoffs', stats.playoffMeetings],
-                ...(!effectiveMobile ? [['Momentum', stats.recentMomentum ? `${stats.recentMomentum.name.split(' ')[0]} (L3Y)` : 'Even']] : []),
-              ].map(([label, val]) => (
+                ['Games', stats.games, text],
+                ['Avg Margin', `${stats.avgMargin} pts`, text],
+                ['Playoffs', stats.playoffMeetings, text],
+                ...(!effectiveMobile ? [['Momentum', stats.recentMomentum ? `${stats.recentMomentum.name.split(' ')[0]} (L3Y)` : 'Even', stats.recentMomentum ? blue : text]] : []),
+              ].map(([label, val, color]) => (
                 <div key={label}>
                   <div style={{ fontSize: '9px', letterSpacing: '0.15em', textTransform: 'uppercase', color: muted, marginBottom: '3px' }}>{label}</div>
-                  <div style={{ fontSize: '13px', color: text, fontWeight: '500' }}>{val}</div>
+                  <div style={{ fontSize: '13px', color, fontWeight: '500' }}>{val}</div>
                 </div>
               ))}
             </div>
@@ -292,11 +303,8 @@ export default function RivalriesPage() {
         <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: effectiveMobile ? '36px' : 'clamp(40px, 6vw, 72px)', fontWeight: '400', marginBottom: '8px', letterSpacing: '-0.02em' }}>
           Rivalries
         </h1>
-        <p style={{ color: muted, fontSize: '12px', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px' }}>
+        <p style={{ color: muted, fontSize: '12px', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '32px' }}>
           The Rivalry Index · curated ranks · heat score from head-to-head stats
-        </p>
-        <p style={{ color: muted, fontSize: '13px', marginBottom: '32px', maxWidth: '560px', lineHeight: 1.6 }}>
-          Dan and Freed also share a table in a related league, Chat Room — the two are known collectively as the "Chatroomites."
         </p>
 
         <div style={{ display: 'flex', gap: '8px', marginBottom: '32px', flexWrap: 'wrap' }}>
