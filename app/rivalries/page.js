@@ -47,22 +47,22 @@ const TOP_RIVALRIES = [
 const pairKey = (a, b) => [a, b].sort().join('_')
 
 const RIVALRY_SYNOPSES = {
-  [pairKey('dan', 'frank')]: `The "Parente Curse": in the league's first year, Frank agreed to a trade with Dan but couldn't follow through after already receiving the players, cursing him to never win the league again until beating Dan in the playoffs. Dan upset Frank in the playoffs in Dan's 2023 championship year, but Frank finally beat the curse this year by beating Dan in the playoffs en route to his own title. Also fueled by a running political rivalry (Frank conservative, Dan liberal) argued in the group chat.`,
-  [pairKey('dan', 'frankel')]: `Same political dynamic (conservative vs. liberal) as with Frank, argued frequently in the group chat. Dan regularly needles Frankel, calling him bad at fantasy football.`,
-  [pairKey('dan', 'bt')]: `The two play MLB The Show together outside the league. Dan talks trash about BT's teams and has made lopsided trades that BT lost, to the point BT now refuses to trade with him.`,
-  [pairKey('frank', 'aj')]: `The league's biggest rivalry, self-rated 100/100. Rooted in a Cubs (Frank) vs. White Sox (AJ) baseball rivalry, argued constantly in the group chat. Team names: Frank's "Lumpy Churo" vs. AJ's "The Paraclete's."`,
-  [pairKey('frank', 'freed')]: `Both lefties politically, frequently bicker over dumb stuff in the group chat.`,
-  [pairKey('aj', 'drew')]: `Another Cubs/Sox-flavored rivalry; both teams have historically been strong and competitive with each other.`,
-  [pairKey('aj', 'justin')]: `Best friends off the field, but Justin has historically dominated their head-to-head matchups (roughly 2/3 win rate) -- a "windshield vs. bug" dynamic.`,
-  [pairKey('aiden', 'beast')]: `Close matchups over the years; both are the league's most successful teams to never have won a championship, giving them a shared "race to the ring" storyline.`,
-  [pairKey('aiden', 'bt')]: `The two managers most disconnected from the group socially -- least likely to be seen in person or hanging out.`,
-  [pairKey('aiden', 'frankel')]: `Frequent group chat sparring; also part of the "no ring" storyline shared with Aiden's other rivals.`,
-  [pairKey('bt', 'freed')]: `One of the most active rivalries in the group chat. Freed coined the nickname "Burger Boy" for BT (which BT dislikes); BT coined "Squidward" for Freed (which Freed dislikes). Ranks among the most heated in the league.`,
-  [pairKey('justin', 'drew')]: `Two of the best managers in the league's early years; frequently met in the playoffs, cultivating a long-standing rivalry.`,
-  [pairKey('justin', 'beast')]: `Frequent group chat sparring partners.`,
-  [pairKey('drew', 'beast')]: `Drew coined the term "#hatebeast" targeted at Beast, making Drew effectively Beast's defining rival.`,
-  [pairKey('drew', 'frank')]: `Best friends who go at it constantly; running joke/rumor in the league that they're secretly in a relationship.`,
-  [pairKey('frankel', 'bt')]: `History dates back to Twin Groves middle school; also share a baseball-based rivalry.`,
+  [pairKey('dan', 'frank')]: `The "Parenti Curse" -- a botched trade haunted Frank until he finally beat Dan in the playoffs this year en route to his title.`,
+  [pairKey('dan', 'frankel')]: `A running political feud in the group chat, with Dan needling Frankel's fantasy skills.`,
+  [pairKey('dan', 'bt')]: `MLB The Show teammates outside the league, but lopsided trades soured BT on ever trading with Dan again.`,
+  [pairKey('frank', 'aj')]: `Cubs vs. White Sox brought to fantasy football -- Frank's Lumpy Churo vs. AJ's The Pericles, the league's defining rivalry since its founding.`,
+  [pairKey('frank', 'freed')]: `Two lefties who bicker over everything in the group chat.`,
+  [pairKey('aj', 'drew')]: `Another Cubs/Sox rivalry between two historically strong, competitive teams.`,
+  [pairKey('aj', 'justin')]: `Best friends whose head-to-head has been a lopsided windshield-vs-bug dynamic in Justin's favor.`,
+  [pairKey('aiden', 'beast')]: `The league's best teams to never win a title, racing each other to the ring.`,
+  [pairKey('aiden', 'bt')]: `The two managers least likely to be seen hanging out outside the league.`,
+  [pairKey('aiden', 'frankel')]: `Frequent group chat sparring partners, both still chasing a first ring.`,
+  [pairKey('bt', 'freed')]: `"Burger Boy" vs. "Squidward" -- the group chat's most heated ongoing feud.`,
+  [pairKey('justin', 'drew')]: `Two of the league's early greats who kept meeting in the playoffs.`,
+  [pairKey('justin', 'beast')]: `Regular group chat sparring partners.`,
+  [pairKey('drew', 'beast')]: `Drew coined "#hatebeast," making him Beast's defining rival.`,
+  [pairKey('drew', 'frank')]: `Best friends who bicker constantly -- rumored to secretly be a couple.`,
+  [pairKey('frankel', 'bt')]: `Friends since Twin Groves middle school, bonded by a shared baseball rivalry.`,
 }
 
 // Flavor storyline, not tied to any single rivalry.
@@ -113,6 +113,7 @@ export default function RivalriesPage() {
 
     const games = allGames.length
     const avgMargin = parseFloat((totalMargin / games).toFixed(2))
+    const closeness = 1 - Math.abs(winsA - winsB) / games
     const recentMomentum = recentWinsA > recentWinsB ? managerA : recentWinsA < recentWinsB ? managerB : null
 
     let biggestGame = null
@@ -139,7 +140,18 @@ export default function RivalriesPage() {
       mostRecentWinner = scoreA > scoreB ? managerA : managerB
     }
 
-    return { games, winsA, winsB, avgMargin, playoffMeetings, recentMomentum, biggestGame, mostRecent, mostRecentWinner }
+    return { games, winsA, winsB, avgMargin, closeness, playoffMeetings, recentMomentum, biggestGame, mostRecent, mostRecentWinner }
+  }
+
+  // Cosmetic heat score from live head-to-head stats -- doesn't affect
+  // curated rank/order, just flavors the card.
+  const getHeatScore = (stats) => {
+    if (!stats) return null
+    const closenessScore = stats.closeness
+    const volumeScore = Math.min(stats.games / 20, 1)
+    const marginScore = Math.max(0, 1 - (stats.avgMargin / 50))
+    const playoffScore = Math.min(stats.playoffMeetings / 3, 1)
+    return Math.round((closenessScore * 0.35 + volumeScore * 0.25 + marginScore * 0.25 + playoffScore * 0.15) * 100)
   }
 
   const leagueRivalries = useMemo(() => {
@@ -180,6 +192,7 @@ export default function RivalriesPage() {
   const RivalryCard = ({ rivalry }) => {
     const { managerA, managerB, stats, synopsis, rank } = rivalry
     const leadingManager = stats && stats.winsA > stats.winsB ? managerA : stats && stats.winsB > stats.winsA ? managerB : null
+    const heat = getHeatScore(stats)
 
     return (
       <div style={{ background: cardBg, border: `1px solid ${border}`, padding: effectiveMobile ? '16px' : '24px', marginBottom: '1px' }}>
@@ -188,9 +201,17 @@ export default function RivalriesPage() {
             <div style={{ fontSize: '10px', letterSpacing: '0.15em', textTransform: 'uppercase', color: rank === 1 ? gold : muted, marginBottom: '6px' }}>
               Rivalry #{rank}
             </div>
-            <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: effectiveMobile ? '18px' : '22px', color: text, fontWeight: '400' }}>
+            <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: effectiveMobile ? '18px' : '22px', color: text, fontWeight: '400', marginBottom: heat !== null ? '8px' : 0 }}>
               {managerA.name}<ChatRoomiteTag slug={managerA.slug} /> vs {managerB.name}<ChatRoomiteTag slug={managerB.slug} />
             </h3>
+            {heat !== null && (
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+                <span style={{ fontFamily: "'Playfair Display', serif", fontSize: effectiveMobile ? '22px' : '26px', color: text, lineHeight: 1, fontWeight: '400' }}>
+                  {heat}
+                </span>
+                <span style={{ fontSize: '9px', letterSpacing: '0.1em', textTransform: 'uppercase', color: muted }}>/ 100 heat</span>
+              </div>
+            )}
           </div>
           {stats && (
             <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: '16px' }}>
@@ -272,7 +293,7 @@ export default function RivalriesPage() {
           Rivalries
         </h1>
         <p style={{ color: muted, fontSize: '12px', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px' }}>
-          The Rivalry Index · curated by the league
+          The Rivalry Index · curated ranks · heat score from head-to-head stats
         </p>
         <p style={{ color: muted, fontSize: '13px', marginBottom: '32px', maxWidth: '560px', lineHeight: 1.6 }}>
           Dan and Freed also share a table in a related league, Chat Room — the two are known collectively as the "Chatroomites."
