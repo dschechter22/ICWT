@@ -187,6 +187,8 @@ export default function ManagersPage() {
     return result
   }, [rosterEntries, teamMap])
 
+  const seasonsWithTeams = useMemo(() => new Set(teams.map(t => t.season_id)), [teams])
+
   const managerStats = useMemo(() => {
     return managers.map(m => {
       const mTeams = teams.filter(t => t.manager_id === m.id)
@@ -199,8 +201,11 @@ export default function ManagersPage() {
       const games = wins + losses
       const winPct = games > 0 ? parseFloat(((wins / games) * 100).toFixed(1)) : 0
       const avgPpg = games > 0 ? parseFloat((pf / games).toFixed(2)) : 0
-      const championships = seasons.filter(s => s.champion?.id === m.id).length
-      const molBowls = seasons.filter(s => s.mol_bowl_loser?.id === m.id).length
+      // Only count championships/Sackos from seasons with recorded team data --
+      // seasons we only know the champion/Sacko for (no full stats yet) shouldn't
+      // swing the data-driven career power rank.
+      const championships = seasons.filter(s => s.champion?.id === m.id && seasonsWithTeams.has(s.id)).length
+      const molBowls = seasons.filter(s => s.mol_bowl_loser?.id === m.id && seasonsWithTeams.has(s.id)).length
       const playoffAppearances = mTeams.filter(t => t.made_playoffs).length
       const seasonsPlayed = mTeams.length
       const teamWithScores = mTeams.map(t => ({ ...t, ps: powerScores[t.id] ?? 0 })).filter(t => t.ps > 0)
@@ -226,7 +231,7 @@ export default function ManagersPage() {
         bestSeason, worstSeason, avgPowerScore, seasonBreakdown,
       }
     }).filter(Boolean)
-  }, [managers, teams, seasons, powerScores])
+  }, [managers, teams, seasons, powerScores, seasonsWithTeams])
 
   const rankedStats = useMemo(() => {
     if (managerStats.length === 0) return []
