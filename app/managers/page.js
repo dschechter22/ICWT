@@ -11,7 +11,8 @@ const supabase = createClient(
 )
 
 const SKILL_POSITIONS = ['QB', 'RB', 'WR', 'TE']
-const POS_COLORS = { QB: '#4285F4', RB: '#34A853', WR: '#FBBC04', TE: '#EA4335' }
+const OWNERSHIP_POSITIONS = [...SKILL_POSITIONS, 'K']
+const POS_COLORS = { QB: '#4285F4', RB: '#34A853', WR: '#FBBC04', TE: '#EA4335', K: '#9b59b6' }
 
 export default function ManagersPage() {
   const { d, effectiveMobile, bg, text, muted, border, cardBg, rowAlt, green, red, gold, blue } = useLayout()
@@ -147,18 +148,20 @@ export default function ManagersPage() {
       if (!team) return
       const managerId = team.manager_id
       const pos = e.player?.position
-      if (!pos || !SKILL_POSITIONS.includes(pos)) return
+      if (!pos || !OWNERSHIP_POSITIONS.includes(pos)) return
 
       if (!result[managerId]) result[managerId] = { byPos: {}, ownership: {} }
 
-      // Best season by position (top 5 by avg_pts)
-      if (!result[managerId].byPos[pos]) result[managerId].byPos[pos] = []
-      result[managerId].byPos[pos].push({
-        playerId: e.player?.id,
-        name: e.player?.name,
-        avg_pts: e.avg_pts || 0,
-        year: team.season?.year,
-      })
+      // Best season by position (top 5 by avg_pts) -- skill positions only
+      if (SKILL_POSITIONS.includes(pos)) {
+        if (!result[managerId].byPos[pos]) result[managerId].byPos[pos] = []
+        result[managerId].byPos[pos].push({
+          playerId: e.player?.id,
+          name: e.player?.name,
+          avg_pts: e.avg_pts || 0,
+          year: team.season?.year,
+        })
+      }
 
       // Ownership count
       const pid = e.player?.id
