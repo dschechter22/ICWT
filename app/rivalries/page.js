@@ -37,7 +37,7 @@ export default function RivalriesPage() {
       .then(({ data }) => setMatchups(data || []))
   }, [])
 
-  const activeManagers = managers.filter(m => m.active)
+  const activeManagers = managers
 
   const getRivalryStats = (managerA, managerB) => {
     const allGames = matchups.filter(m => {

@@ -25,7 +25,6 @@ export default function ManagersPage() {
   const [selectedManager, setSelectedManager] = useState(null)
   const [activeTab, setActiveTab] = useState({}) // manager id -> tab
   const [searchText, setSearchText] = useState('')
-  const [showRetired, setShowRetired] = useState(false)
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => { setMounted(true) }, [])
@@ -246,7 +245,6 @@ export default function ManagersPage() {
   if (!mounted) return null
 
   const displayManagers = rankedStats
-    .filter(m => showRetired ? true : m.active)
     .filter(m => !searchText || m.name.toLowerCase().includes(searchText.toLowerCase()))
     .sort((a, b) => a.careerPowerRank - b.careerPowerRank)
 
@@ -283,15 +281,13 @@ export default function ManagersPage() {
     const playerStats = managerPlayerStats[m.id]
 
     return (
-      <div style={{ background: cardBg, border: `1px solid ${border}`, borderTop: `3px solid ${m.championships > 0 ? gold : m.active ? (d ? 'rgba(255,255,255,0.2)' : 'rgba(13,33,82,0.2)') : border}` }}>
+      <div style={{ background: cardBg, border: `1px solid ${border}`, borderTop: `3px solid ${m.championships > 0 ? gold : (d ? 'rgba(255,255,255,0.2)' : 'rgba(13,33,82,0.2)')}` }}>
         {/* Card header */}
         <div onClick={() => setSelectedManager(isSelected ? null : m.id)} style={{ padding: effectiveMobile ? '16px' : '20px 24px', cursor: 'pointer' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
             <div>
               <div style={{ fontFamily: "'Playfair Display', serif", fontSize: effectiveMobile ? '20px' : '24px', color: text, marginBottom: '4px' }}>{m.name}</div>
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                <span style={{ fontSize: '10px', letterSpacing: '0.15em', textTransform: 'uppercase', color: m.active ? green : muted }}>{m.active ? 'Active' : 'Retired'}</span>
-                <span style={{ fontSize: '10px', color: muted }}>·</span>
                 <span style={{ fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: muted }}>{m.seasonsPlayed} seasons</span>
                 <span style={{ fontSize: '10px', color: muted }}>·</span>
                 <span style={{ fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: muted }}>#{m.careerPowerRank} all-time power</span>
@@ -492,19 +488,6 @@ export default function ManagersPage() {
             onChange={e => setSearchText(e.target.value)}
             style={{ background: cardBg, border: `1px solid ${border}`, color: text, padding: '7px 12px', fontSize: '12px', fontFamily: "'Inter', sans-serif", outline: 'none', width: effectiveMobile ? '100%' : '200px' }}
           />
-        </div>
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '32px', flexWrap: 'wrap' }}>
-          {[
-            [!showRetired, 'Active Only', () => setShowRetired(false)],
-            [showRetired, 'Include Retired', () => setShowRetired(true)],
-          ].map(([active, label, onClick]) => (
-            <button key={label} onClick={onClick} style={{
-              background: active ? text : 'none', border: `1px solid ${border}`,
-              color: active ? bg : muted, padding: effectiveMobile ? '6px 10px' : '7px 16px',
-              cursor: 'pointer', fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase',
-              fontFamily: "'Inter', sans-serif", fontWeight: '500', whiteSpace: 'nowrap',
-            }}>{label}</button>
-          ))}
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>

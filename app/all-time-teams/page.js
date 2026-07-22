@@ -307,7 +307,7 @@ export default function AllTimeTeamsPage() {
             <table style={{ width: '100%', borderCollapse: 'collapse', borderTop: `1px solid ${border}` }}>
               <thead>
                 <tr>
-                  <th style={hStyle('center')} onClick={() => handleSort('final_standing')}>Rk <SortIcon col="final_standing" /></th>
+                  <th style={hStyle('center')}>Rk</th>
                   <th style={hStyle('left')} onClick={() => handleSort('manager')}>Manager <SortIcon col="manager" /></th>
                   <th style={hStyle('left')} onClick={() => handleSort('team_name')}>Team <SortIcon col="team_name" /></th>
                   <th style={hStyle('center')} onClick={() => handleSort('year')}>Year <SortIcon col="year" /></th>
@@ -329,7 +329,7 @@ export default function AllTimeTeamsPage() {
                     onMouseEnter={e => e.currentTarget.style.background = d ? '#0d0d1a' : '#e8edf5'}
                     onMouseLeave={e => e.currentTarget.style.background = i % 2 === 0 ? 'transparent' : rowAlt}
                   >
-                    <td style={{ ...cStyle('center'), color: muted }}>{t.final_standing}</td>
+                    <td style={{ ...cStyle('center'), color: muted }}>{i + 1}</td>
                     <td style={{ ...cStyle('left'), fontFamily: "'Playfair Display', serif", fontSize: '15px' }}>{t.manager?.name}</td>
                     <td style={{ ...cStyle('left'), color: muted, fontSize: '12px' }}>{t.team_name}</td>
                     <td style={{ ...cStyle('center'), color: muted }}>{t.season?.year}</td>

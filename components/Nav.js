@@ -82,7 +82,7 @@ export default function Nav() {
 
       <nav className="fc-nav">
         <div className="fc-nav-top">
-          <a href="/" className="fc-logo">Fantasy Chatroom</a>
+          <a href="/" className="fc-logo">In Caleb We Trust</a>
           <div className="fc-controls">
             <button onClick={toggleTheme} className="fc-btn">{d ? 'Light' : 'Dark'}</button>
             <button onClick={toggleLayout} className="fc-btn">{effectiveMobile ? 'Desktop' : 'Mobile'}</button>

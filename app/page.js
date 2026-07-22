@@ -29,7 +29,7 @@ export default function HomePage() {
             Est. 2016 · Year 10
           </p>
           <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: effectiveMobile ? '42px' : 'clamp(56px, 8vw, 96px)', fontWeight: '400', lineHeight: 1.05, letterSpacing: '-0.02em', marginBottom: '24px' }}>
-            Fantasy<br />Chatroom
+            In Caleb<br />We Trust
           </h1>
           <p style={{ color: muted, fontSize: effectiveMobile ? '14px' : '16px', maxWidth: '480px', lineHeight: 1.7 }}>
             10 years · 10 managers · one throne
@@ -38,7 +38,7 @@ export default function HomePage() {
 
         {/* Stats bar */}
         <div style={{ display: 'flex', gap: effectiveMobile ? '24px' : '48px', marginBottom: effectiveMobile ? '48px' : '72px', flexWrap: 'wrap' }}>
-          {[['10', 'Seasons'], ['10', 'Active Managers'], ['10', 'Total Managers']].map(([num, label]) => (
+          {[['10', 'Seasons'], ['10', 'Managers']].map(([num, label]) => (
             <div key={label}>
               <div style={{ fontFamily: "'Playfair Display', serif", fontSize: effectiveMobile ? '36px' : '48px', color: text, lineHeight: 1 }}>{num}</div>
               <div style={{ fontSize: '11px', letterSpacing: '0.15em', textTransform: 'uppercase', color: muted, marginTop: '6px' }}>{label}</div>

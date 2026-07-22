@@ -16,7 +16,6 @@ export default function H2HPage() {
   const [matchups, setMatchups] = useState([])
   const [selected, setSelected] = useState(null)
   const [includePlayoffs, setIncludePlayoffs] = useState(true)
-  const [showRetired, setShowRetired] = useState(false)
   const [searchText, setSearchText] = useState('')
   const [modal, setModal] = useState(null) // { managerA, managerB }
 
@@ -25,7 +24,7 @@ export default function H2HPage() {
     supabase.from('matchups').select('*, home_team:home_team_id(id, manager_id), away_team:away_team_id(id, manager_id), season:season_id(year)').then(({ data }) => setMatchups(data || []))
   }, [])
 
-  const displayManagers = (showRetired ? managers : managers.filter(m => m.active))
+  const displayManagers = managers
     .filter(m => !searchText || m.name.toLowerCase().includes(searchText.toLowerCase()))
 
   const filteredMatchups = matchups.filter(m => includePlayoffs ? true : !m.is_playoff)
@@ -255,7 +254,6 @@ export default function H2HPage() {
         <div style={{ display: 'flex', gap: '8px', marginBottom: '40px', flexWrap: 'wrap' }}>
           {toggleBtn(includePlayoffs, 'Include Playoffs', () => setIncludePlayoffs(true))}
           {toggleBtn(!includePlayoffs, 'Regular Season Only', () => setIncludePlayoffs(false))}
-          {toggleBtn(showRetired, 'Include Retired', () => setShowRetired(!showRetired))}
         </div>
 
         {!selected ? (
@@ -273,7 +271,6 @@ export default function H2HPage() {
                   <div key={m.id} onClick={() => setSelected(m.id)} style={{ background: cardBg, padding: effectiveMobile ? '16px' : '24px 20px', cursor: 'pointer' }}>
                     <div style={{ fontFamily: "'Playfair Display', serif", fontSize: effectiveMobile ? '15px' : '18px', color: text, marginBottom: '8px' }}>
                       {m.name}
-                      {!m.active && <span style={{ fontSize: '10px', color: muted, marginLeft: '6px' }}>retired</span>}
                     </div>
                     <div style={{ fontSize: '13px', color: muted }}>{rec.wins}-{rec.losses}</div>
                     <div style={{ fontSize: '11px', color: muted, marginTop: '4px' }}>{pct}% vs shown</div>
@@ -302,7 +299,6 @@ export default function H2HPage() {
                           onClick={() => setSelected(rowManager.id)}
                         >
                           {rowManager.name}
-                          {!rowManager.active && <span style={{ fontSize: '10px', color: muted, marginLeft: '8px' }}>retired</span>}
                         </td>
                         {displayManagers.map(colManager => {
                           if (rowManager.id === colManager.id) {
@@ -409,7 +405,6 @@ export default function H2HPage() {
                       >
                         <td style={{ ...cStyle('left'), fontFamily: "'Playfair Display', serif", fontSize: '15px' }}>
                           {opponent.name}
-                          {!opponent.active && <span style={{ fontSize: '10px', color: muted, marginLeft: '8px' }}>retired</span>}
                         </td>
                         <td style={cStyle()}>{h.wins}</td>
                         <td style={cStyle()}>{h.losses}</td>

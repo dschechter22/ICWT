@@ -7,9 +7,19 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 )
-const MANAGER_COLORS = {}
+const MANAGER_COLORS_LIGHT = {
+  'dan': '#2a78d6', 'freed': '#b71c1c', 'beast': '#1baf7a', 'justin': '#eda100',
+  'drew': '#4a3aa7', 'frank': '#eb6834', 'aj': '#008300', 'aiden': '#e87ba4',
+  'bt': '#00acc1', 'frankel': '#c2185b',
+}
+const MANAGER_COLORS_DARK = {
+  'dan': '#3987e5', 'freed': '#e66767', 'beast': '#199e70', 'justin': '#c98500',
+  'drew': '#9085e9', 'frank': '#d95926', 'aj': '#008300', 'aiden': '#d55181',
+  'bt': '#0097a7', 'frankel': '#ad1457',
+}
 export default function LJIndexPage() {
   const { d, effectiveMobile, bg, text, muted, border, cardBg, rowAlt, green, red } = useLayout()
+  const MANAGER_COLORS = d ? MANAGER_COLORS_DARK : MANAGER_COLORS_LIGHT
   const [seasons, setSeasons] = useState([])
   const [selectedYear, setSelectedYear] = useState(2025)
   const [matchups, setMatchups] = useState([])
@@ -108,7 +118,6 @@ export default function LJIndexPage() {
   // allTimeData declared BEFORE activeData to avoid initialization error
   const allTimeData = useMemo(() => {
     if (managers.length === 0 || allMatchups.length === 0) return []
-    const activeM = managers.filter(m => m.active)
     const allSeasons = [...new Set(allMatchups.map(m => m.season?.year))].filter(Boolean)
     const filteredSeasons = allSeasons.filter(yr => {
       if (allTimeYearFrom !== 'all' && yr < parseInt(allTimeYearFrom)) return false
@@ -116,7 +125,7 @@ export default function LJIndexPage() {
       return true
     })
     const result = {}
-    activeM.forEach(m => { result[m.id] = { wins: 0, losses: 0, allPlaySum: 0, weekCount: 0, pf: 0, scores: [], managerName: m.name, managerSlug: m.slug } })
+    managers.forEach(m => { result[m.id] = { wins: 0, losses: 0, allPlaySum: 0, weekCount: 0, pf: 0, scores: [], managerName: m.name, managerSlug: m.slug } })
     filteredSeasons.forEach(yr => {
       const yearMatchups = allMatchups.filter(m => m.season?.year === yr && !m.is_playoff)
       const weeks = [...new Set(yearMatchups.map(m => m.week))].sort((a, b) => a - b)

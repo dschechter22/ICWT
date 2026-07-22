@@ -198,7 +198,6 @@ export default function StandingsPage() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
         <div>
           <div style={{ fontFamily: "'Playfair Display', serif", fontSize: '18px', color: text }}>{m.name}</div>
-          {!m.active && <span style={{ fontSize: '10px', color: muted, letterSpacing: '0.1em' }}>RETIRED</span>}
         </div>
         <button onClick={() => toggleExpand(m.slug)} style={{ background: 'none', border: `1px solid ${border}`, color: muted, padding: '4px 10px', cursor: 'pointer', fontSize: '11px', fontFamily: "'Inter', sans-serif" }}>
           {expanded[m.slug] ? '▲' : '▼'}
@@ -308,7 +307,6 @@ export default function StandingsPage() {
                     <tr key={m.slug} onClick={() => toggleExpand(m.slug)} style={{ background: i % 2 === 0 ? 'transparent' : rowAlt, cursor: 'pointer' }}>
                       <td style={{ ...cStyle('left', true), fontFamily: "'Playfair Display', serif", fontSize: '16px' }}>
                         {m.name}
-                        {!m.active && <span style={{ fontSize: '10px', color: muted, marginLeft: '8px', letterSpacing: '0.1em' }}>retired</span>}
                       </td>
                       <td style={cStyle()}>{m.wins}</td>
                       <td style={cStyle()}>{m.losses}</td>
