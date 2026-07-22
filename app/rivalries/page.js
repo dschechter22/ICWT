@@ -83,14 +83,16 @@ const RIVALRY_HEAT = {
   [pairKey('aiden', 'frankel')]: 83,
   [pairKey('aiden', 'bt')]: 81,
   [pairKey('freed', 'beast')]: 80,
-  [pairKey('justin', 'beast')]: 78,
+  // Not part of the leaguewide Top 15 -- generated below the Top 15's floor.
+  [pairKey('frank', 'freed')]: 77,
+  [pairKey('justin', 'beast')]: 75,
 }
 
 // Flavor storyline, not tied to any single rivalry.
 const CHAT_ROOMITES = ['dan', 'freed']
 
 export default function RivalriesPage() {
-  const { d, effectiveMobile, bg, text, muted, border, cardBg, gold, red, blue } = useLayout()
+  const { d, effectiveMobile, bg, text, muted, border, cardBg, gold, blue } = useLayout()
 
   const [managers, setManagers] = useState([])
   const [matchups, setMatchups] = useState([])
@@ -191,7 +193,7 @@ export default function RivalriesPage() {
         synopsis: RIVALRY_SYNOPSES[pairKey(manager.slug, slug)],
         heat: RIVALRY_HEAT[pairKey(manager.slug, slug)] ?? null,
       }
-    }).filter(Boolean)
+    }).filter(Boolean).sort((a, b) => (b.heat ?? -1) - (a.heat ?? -1))
   }
 
   const ChatRoomiteTag = ({ slug }) => CHAT_ROOMITES.includes(slug) ? (
@@ -223,16 +225,11 @@ export default function RivalriesPage() {
         </div>
 
         {heat !== null && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-              <span style={{ fontFamily: "'Playfair Display', serif", fontSize: effectiveMobile ? '28px' : '32px', color: text, lineHeight: 1, fontWeight: '400' }}>
-                {heat}
-              </span>
-              <span style={{ fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: muted }}>/ 100</span>
-            </div>
-            <span style={{ fontSize: '9px', letterSpacing: '0.1em', textTransform: 'uppercase', color: red, border: `1px solid ${red}`, padding: '2px 6px', fontWeight: '600' }}>
-              Named Rival
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '14px' }}>
+            <span style={{ fontFamily: "'Playfair Display', serif", fontSize: effectiveMobile ? '28px' : '32px', color: text, lineHeight: 1, fontWeight: '400' }}>
+              {heat}
             </span>
+            <span style={{ fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: muted }}>/ 100</span>
           </div>
         )}
 
