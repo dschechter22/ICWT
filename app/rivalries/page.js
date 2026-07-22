@@ -10,7 +10,7 @@ const supabase = createClient(
 )
 
 // Each manager's personal top-3 rivals, in rank order (index 0 = #1).
-// Curated by the league, not derived from stats -- some pairs are
+// Curated by the league, not derived from stats. Some pairs are
 // one-directional (e.g. Drew lists Frank, Frank doesn't list Drew back).
 const MANAGER_RIVALS = {
   dan:     ['frank', 'frankel', 'bt'],
@@ -25,7 +25,7 @@ const MANAGER_RIVALS = {
   freed:   ['bt', 'frank', 'beast'],
 }
 
-// Leaguewide ranked list -- independent of any manager's personal top 3.
+// Leaguewide ranked list, independent of any manager's personal top 3.
 const TOP_RIVALRIES = [
   ['frank', 'aj'],
   ['bt', 'freed'],
@@ -47,26 +47,26 @@ const TOP_RIVALRIES = [
 const pairKey = (a, b) => [a, b].sort().join('_')
 
 const RIVALRY_SYNOPSES = {
-  [pairKey('dan', 'frank')]: `The "Parenti Curse" -- a botched trade haunted Frank until he finally beat Dan in the playoffs this year en route to his title.`,
+  [pairKey('dan', 'frank')]: `The "Parenti Curse": a botched trade haunted Frank until he finally beat Dan in the playoffs this year en route to his title.`,
   [pairKey('dan', 'frankel')]: `A running political feud in the group chat, with Dan needling Frankel's fantasy skills.`,
   [pairKey('dan', 'bt')]: `MLB The Show teammates outside the league, but lopsided trades soured BT on ever trading with Dan again.`,
-  [pairKey('frank', 'aj')]: `Cubs vs. White Sox brought to fantasy football -- Frank's Lumpy Churo vs. AJ's The Pericles, the league's defining rivalry since its founding.`,
+  [pairKey('frank', 'aj')]: `Cubs vs. White Sox brought to fantasy football: Frank's Lumpy Churo vs. AJ's The Pericles, the league's defining rivalry since its founding.`,
   [pairKey('frank', 'freed')]: `Two lefties who bicker over everything in the group chat.`,
   [pairKey('aj', 'drew')]: `Another Cubs/Sox rivalry between two historically strong, competitive teams.`,
   [pairKey('aj', 'justin')]: `Best friends whose head-to-head has been a lopsided windshield-vs-bug dynamic in Justin's favor.`,
   [pairKey('aiden', 'beast')]: `The league's best teams to never win a title, racing each other to the ring.`,
   [pairKey('aiden', 'bt')]: `The two managers least likely to be seen hanging out outside the league.`,
   [pairKey('aiden', 'frankel')]: `Frequent group chat sparring partners, both still chasing a first ring.`,
-  [pairKey('bt', 'freed')]: `"Burger Boy" vs. "Squidward" -- the group chat's most heated ongoing feud.`,
+  [pairKey('bt', 'freed')]: `"Burger Boy" vs. "Squidward," the group chat's most heated ongoing feud.`,
   [pairKey('justin', 'drew')]: `Two of the league's early greats who kept meeting in the playoffs.`,
   [pairKey('justin', 'beast')]: `Regular group chat sparring partners.`,
   [pairKey('drew', 'beast')]: `Drew coined "#hatebeast," making him Beast's defining rival.`,
-  [pairKey('drew', 'frank')]: `Best friends who bicker constantly -- rumored to secretly be a couple.`,
+  [pairKey('drew', 'frank')]: `Best friends who bicker constantly, rumored to secretly be a couple.`,
   [pairKey('frankel', 'bt')]: `Friends since Twin Groves middle school, bonded by a shared baseball rivalry.`,
-  [pairKey('freed', 'beast')]: `Frequent back-and-forth -- the two just enjoy sparring in the group chat.`,
+  [pairKey('freed', 'beast')]: `Frequent back-and-forth; the two just enjoy sparring in the group chat.`,
 }
 
-// Fixed heat scores, set by the league -- not computed from stats.
+// Fixed heat scores, set by the league, not computed from stats.
 const RIVALRY_HEAT = {
   [pairKey('frank', 'aj')]: 100,
   [pairKey('bt', 'freed')]: 98,
@@ -83,7 +83,7 @@ const RIVALRY_HEAT = {
   [pairKey('aiden', 'frankel')]: 83,
   [pairKey('aiden', 'bt')]: 81,
   [pairKey('freed', 'beast')]: 80,
-  // Not part of the leaguewide Top 15 -- generated below the Top 15's floor.
+  // Not part of the leaguewide Top 15; generated below the Top 15's floor.
   [pairKey('frank', 'freed')]: 77,
   [pairKey('justin', 'beast')]: 75,
 }
