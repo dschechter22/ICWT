@@ -9,21 +9,67 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 )
 
-const INTERPERSONAL = {}
-
-const NARRATIVES = {}
-
-const getNarrative = (slugA, slugB) => {
-  const key1 = `${slugA}-${slugB}`
-  const key2 = `${slugB}-${slugA}`
-  return NARRATIVES[key1] || NARRATIVES[key2] || null
+// Each manager's personal top-3 rivals, in rank order (index 0 = #1).
+// Curated by the league, not derived from stats -- some pairs are
+// one-directional (e.g. Drew lists Frank, Frank doesn't list Drew back).
+const MANAGER_RIVALS = {
+  dan:     ['frank', 'frankel', 'bt'],
+  frank:   ['aj', 'dan', 'freed'],
+  aj:      ['frank', 'drew', 'justin'],
+  aiden:   ['beast', 'bt', 'frankel'],
+  bt:      ['freed', 'dan', 'aiden'],
+  justin:  ['aj', 'drew', 'beast'],
+  drew:    ['beast', 'justin', 'frank'],
+  frankel: ['dan', 'aiden', 'bt'],
+  beast:   ['drew', 'aiden', 'justin'],
+  freed:   ['bt', 'frank', 'beast'],
 }
 
-const isInterpersonalRival = (slugA, slugB) =>
-  (INTERPERSONAL[slugA] || []).includes(slugB) || (INTERPERSONAL[slugB] || []).includes(slugA)
+// Leaguewide ranked list -- independent of any manager's personal top 3.
+const TOP_RIVALRIES = [
+  ['frank', 'aj'],
+  ['bt', 'freed'],
+  ['dan', 'frank'],
+  ['drew', 'beast'],
+  ['justin', 'drew'],
+  ['aj', 'justin'],
+  ['dan', 'frankel'],
+  ['aj', 'drew'],
+  ['drew', 'frank'],
+  ['frankel', 'bt'],
+  ['aiden', 'beast'],
+  ['dan', 'bt'],
+  ['aiden', 'frankel'],
+  ['aiden', 'bt'],
+  ['freed', 'beast'],
+]
+
+const pairKey = (a, b) => [a, b].sort().join('_')
+
+const RIVALRY_SYNOPSES = {
+  [pairKey('dan', 'frank')]: `The "Parente Curse": in the league's first year, Frank agreed to a trade with Dan but couldn't follow through after already receiving the players, cursing him to never win the league again until beating Dan in the playoffs. Dan upset Frank in the playoffs in Dan's 2023 championship year, but Frank finally beat the curse this year by beating Dan in the playoffs en route to his own title. Also fueled by a running political rivalry (Frank conservative, Dan liberal) argued in the group chat.`,
+  [pairKey('dan', 'frankel')]: `Same political dynamic (conservative vs. liberal) as with Frank, argued frequently in the group chat. Dan regularly needles Frankel, calling him bad at fantasy football.`,
+  [pairKey('dan', 'bt')]: `The two play MLB The Show together outside the league. Dan talks trash about BT's teams and has made lopsided trades that BT lost, to the point BT now refuses to trade with him.`,
+  [pairKey('frank', 'aj')]: `The league's biggest rivalry, self-rated 100/100. Rooted in a Cubs (Frank) vs. White Sox (AJ) baseball rivalry, argued constantly in the group chat. Team names: Frank's "Lumpy Churo" vs. AJ's "The Paraclete's."`,
+  [pairKey('frank', 'freed')]: `Both lefties politically, frequently bicker over dumb stuff in the group chat.`,
+  [pairKey('aj', 'drew')]: `Another Cubs/Sox-flavored rivalry; both teams have historically been strong and competitive with each other.`,
+  [pairKey('aj', 'justin')]: `Best friends off the field, but Justin has historically dominated their head-to-head matchups (roughly 2/3 win rate) -- a "windshield vs. bug" dynamic.`,
+  [pairKey('aiden', 'beast')]: `Close matchups over the years; both are the league's most successful teams to never have won a championship, giving them a shared "race to the ring" storyline.`,
+  [pairKey('aiden', 'bt')]: `The two managers most disconnected from the group socially -- least likely to be seen in person or hanging out.`,
+  [pairKey('aiden', 'frankel')]: `Frequent group chat sparring; also part of the "no ring" storyline shared with Aiden's other rivals.`,
+  [pairKey('bt', 'freed')]: `One of the most active rivalries in the group chat. Freed coined the nickname "Burger Boy" for BT (which BT dislikes); BT coined "Squidward" for Freed (which Freed dislikes). Ranks among the most heated in the league.`,
+  [pairKey('justin', 'drew')]: `Two of the best managers in the league's early years; frequently met in the playoffs, cultivating a long-standing rivalry.`,
+  [pairKey('justin', 'beast')]: `Frequent group chat sparring partners.`,
+  [pairKey('drew', 'beast')]: `Drew coined the term "#hatebeast" targeted at Beast, making Drew effectively Beast's defining rival.`,
+  [pairKey('drew', 'frank')]: `Best friends who go at it constantly; running joke/rumor in the league that they're secretly in a relationship.`,
+  [pairKey('frankel', 'bt')]: `History dates back to Twin Groves middle school; also share a baseball-based rivalry.`,
+}
+
+// Flavor storyline, not tied to any single rivalry.
+const CHAT_ROOMITES = ['dan', 'freed']
 
 export default function RivalriesPage() {
-  const { d, effectiveMobile, bg, text, muted, border, cardBg, rowAlt, green, red, gold, blue } = useLayout()
+  const { d, effectiveMobile, bg, text, muted, border, cardBg, gold } = useLayout()
 
   const [managers, setManagers] = useState([])
   const [matchups, setMatchups] = useState([])
@@ -37,7 +83,7 @@ export default function RivalriesPage() {
       .then(({ data }) => setMatchups(data || []))
   }, [])
 
-  const activeManagers = managers
+  const bySlug = useMemo(() => Object.fromEntries(managers.map(m => [m.slug, m])), [managers])
 
   const getRivalryStats = (managerA, managerB) => {
     const allGames = matchups.filter(m => {
@@ -67,7 +113,6 @@ export default function RivalriesPage() {
 
     const games = allGames.length
     const avgMargin = parseFloat((totalMargin / games).toFixed(2))
-    const closeness = 1 - Math.abs(winsA - winsB) / games
     const recentMomentum = recentWinsA > recentWinsB ? managerA : recentWinsA < recentWinsB ? managerB : null
 
     let biggestGame = null
@@ -94,123 +139,116 @@ export default function RivalriesPage() {
       mostRecentWinner = scoreA > scoreB ? managerA : managerB
     }
 
-    return { games, winsA, winsB, avgMargin, closeness, playoffMeetings, recentMomentum, biggestGame, mostRecent, mostRecentWinner }
+    return { games, winsA, winsB, avgMargin, playoffMeetings, recentMomentum, biggestGame, mostRecent, mostRecentWinner }
   }
 
-  const getRivalryScore = (managerA, managerB, stats) => {
-    if (!stats) return 0
-    const closenessScore = stats.closeness
-    const volumeScore = Math.min(stats.games / 20, 1)
-    const marginScore = Math.max(0, 1 - (stats.avgMargin / 50))
-    const playoffScore = Math.min(stats.playoffMeetings / 3, 1)
-    const statsScore = closenessScore * 0.35 + volumeScore * 0.25 + marginScore * 0.25 + playoffScore * 0.15
-    const interpersonal = isInterpersonalRival(managerA.slug, managerB.slug) ? 1 : 0
-    return parseFloat(((statsScore * 0.6) + (interpersonal * 0.4)).toFixed(4))
-  }
-
-  const allRivalries = useMemo(() => {
-    if (activeManagers.length === 0 || matchups.length === 0) return []
-    const pairs = []
-    for (let i = 0; i < activeManagers.length; i++) {
-      for (let j = i + 1; j < activeManagers.length; j++) {
-        const mA = activeManagers[i]
-        const mB = activeManagers[j]
-        const stats = getRivalryStats(mA, mB)
-        if (!stats || stats.games < 3) continue
-        const score = getRivalryScore(mA, mB, stats)
-        pairs.push({ managerA: mA, managerB: mB, stats, score })
+  const leagueRivalries = useMemo(() => {
+    if (managers.length === 0) return []
+    return TOP_RIVALRIES.map(([slugA, slugB], i) => {
+      const managerA = bySlug[slugA], managerB = bySlug[slugB]
+      if (!managerA || !managerB) return null
+      return {
+        rank: i + 1,
+        managerA, managerB,
+        stats: getRivalryStats(managerA, managerB),
+        synopsis: RIVALRY_SYNOPSES[pairKey(slugA, slugB)],
       }
-    }
-    return pairs.sort((a, b) => b.score - a.score)
-  }, [activeManagers, matchups])
+    }).filter(Boolean)
+  }, [managers, matchups, bySlug])
 
-  const getTop3Rivals = (manager) => {
-    return allRivalries
-      .filter(r => r.managerA.id === manager.id || r.managerB.id === manager.id)
-      .slice(0, 3)
-      .map(r => ({
-        ...r,
-        opponent: r.managerA.id === manager.id ? r.managerB : r.managerA,
-        winsForManager: r.managerA.id === manager.id ? r.stats.winsA : r.stats.winsB,
-        winsForOpponent: r.managerA.id === manager.id ? r.stats.winsB : r.stats.winsA,
-      }))
+  const managerRivalries = (manager) => {
+    if (!manager) return []
+    const rivalSlugs = MANAGER_RIVALS[manager.slug] || []
+    return rivalSlugs.map((slug, i) => {
+      const opponent = bySlug[slug]
+      if (!opponent) return null
+      return {
+        rank: i + 1,
+        managerA: manager, managerB: opponent,
+        stats: getRivalryStats(manager, opponent),
+        synopsis: RIVALRY_SYNOPSES[pairKey(manager.slug, slug)],
+      }
+    }).filter(Boolean)
   }
 
-  const RivalryCard = ({ rivalry, showNarrative = false, compact = false }) => {
-    const { managerA, managerB, stats, score } = rivalry
-    const narrative = showNarrative ? getNarrative(managerA.slug, managerB.slug) : null
-    const isInterpersonal = isInterpersonalRival(managerA.slug, managerB.slug)
-    const leadingManager = stats.winsA > stats.winsB ? managerA : stats.winsB > stats.winsA ? managerB : null
+  const ChatRoomiteTag = ({ slug }) => CHAT_ROOMITES.includes(slug) ? (
+    <span style={{ fontSize: '9px', letterSpacing: '0.1em', textTransform: 'uppercase', color: gold, border: `1px solid ${gold}`, padding: '1px 6px', marginLeft: '8px' }}>
+      Chatroomite
+    </span>
+  ) : null
+
+  const RivalryCard = ({ rivalry }) => {
+    const { managerA, managerB, stats, synopsis, rank } = rivalry
+    const leadingManager = stats && stats.winsA > stats.winsB ? managerA : stats && stats.winsB > stats.winsA ? managerB : null
 
     return (
-      <div style={{ background: cardBg, border: `1px solid ${border}`, padding: compact ? '16px' : effectiveMobile ? '16px' : '24px', marginBottom: '1px' }}>
+      <div style={{ background: cardBg, border: `1px solid ${border}`, padding: effectiveMobile ? '16px' : '24px', marginBottom: '1px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
           <div style={{ flex: 1 }}>
-            <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: compact ? '16px' : effectiveMobile ? '18px' : '22px', color: text, fontWeight: '400', marginBottom: '6px' }}>
-              {managerA.name} vs {managerB.name}
+            <div style={{ fontSize: '10px', letterSpacing: '0.15em', textTransform: 'uppercase', color: rank === 1 ? gold : muted, marginBottom: '6px' }}>
+              Rivalry #{rank}
+            </div>
+            <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: effectiveMobile ? '18px' : '22px', color: text, fontWeight: '400' }}>
+              {managerA.name}<ChatRoomiteTag slug={managerA.slug} /> vs {managerB.name}<ChatRoomiteTag slug={managerB.slug} />
             </h3>
-            <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-              {/* Rivalry score -- big and prominent */}
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-                <span style={{ fontFamily: "'Playfair Display', serif", fontSize: compact ? '28px' : effectiveMobile ? '32px' : '40px', color: text, lineHeight: 1, fontWeight: '400' }}>
-                  {(score * 100).toFixed(0)}
-                </span>
-                <span style={{ fontSize: '10px', letterSpacing: '0.15em', textTransform: 'uppercase', color: muted }}>/ 100</span>
+          </div>
+          {stats && (
+            <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: '16px' }}>
+              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: effectiveMobile ? '24px' : '28px', color: text, marginBottom: '2px' }}>
+                {stats.winsA}–{stats.winsB}
               </div>
-              {isInterpersonal && (
-                <span style={{ fontSize: '9px', letterSpacing: '0.15em', textTransform: 'uppercase', color: red, border: `1px solid ${red}`, padding: '2px 6px' }}>Named Rival</span>
-              )}
+              <div style={{ fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: muted }}>
+                {leadingManager ? `${leadingManager.name.split(' ')[0]} leads` : 'Even'}
+              </div>
             </div>
-          </div>
-          <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: '16px' }}>
-            <div style={{ fontFamily: "'Playfair Display', serif", fontSize: compact ? '22px' : effectiveMobile ? '24px' : '28px', color: text, marginBottom: '2px' }}>
-              {stats.winsA}–{stats.winsB}
-            </div>
-            <div style={{ fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: muted }}>
-              {leadingManager ? `${leadingManager.name.split(' ')[0]} leads` : 'Even'}
-            </div>
-          </div>
+          )}
         </div>
 
-        {narrative && (
+        {synopsis && (
           <p style={{ fontSize: '13px', color: muted, lineHeight: 1.6, marginBottom: '14px', fontStyle: 'italic' }}>
-            "{narrative}"
+            "{synopsis}"
           </p>
         )}
 
-        <div style={{ display: 'grid', gridTemplateColumns: compact ? 'repeat(3, 1fr)' : `repeat(${effectiveMobile ? 3 : 4}, 1fr)`, gap: '12px', marginBottom: '12px' }}>
-          {[
-            ['Games', stats.games],
-            ['Avg Margin', `${stats.avgMargin} pts`],
-            ['Playoffs', stats.playoffMeetings],
-            ...(!compact && !effectiveMobile ? [['Momentum', stats.recentMomentum ? `${stats.recentMomentum.name.split(' ')[0]} (L3Y)` : 'Even']] : []),
-          ].map(([label, val]) => (
-            <div key={label}>
-              <div style={{ fontSize: '9px', letterSpacing: '0.15em', textTransform: 'uppercase', color: muted, marginBottom: '3px' }}>{label}</div>
-              <div style={{ fontSize: '13px', color: text, fontWeight: '500' }}>{val}</div>
-            </div>
-          ))}
-        </div>
-
-        {!compact && stats.biggestGame && (
-          <div style={{ borderTop: `1px solid ${border}`, paddingTop: '12px', display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
-            <div>
-              <div style={{ fontSize: '9px', letterSpacing: '0.15em', textTransform: 'uppercase', color: muted, marginBottom: '3px' }}>Biggest Game</div>
-              <div style={{ fontSize: '12px', color: text }}>
-                {stats.biggestGame.winner.name.split(' ')[0]} won {stats.biggestGame.winnerScore}–{stats.biggestGame.loserScore} · {stats.biggestGame.year} Wk{stats.biggestGame.week}
-                {stats.biggestGame.isPlayoff && <span style={{ color: gold, marginLeft: '6px', fontSize: '10px' }}>Playoff</span>}
-              </div>
-            </div>
-            {stats.mostRecent && (
-              <div>
-                <div style={{ fontSize: '9px', letterSpacing: '0.15em', textTransform: 'uppercase', color: muted, marginBottom: '3px' }}>Most Recent</div>
-                <div style={{ fontSize: '12px', color: text }}>
-                  {stats.mostRecentWinner?.name.split(' ')[0]} won · {stats.mostRecent.season?.year} Wk{stats.mostRecent.week}
-                  {stats.mostRecent.is_playoff && <span style={{ color: gold, marginLeft: '6px', fontSize: '10px' }}>Playoff</span>}
+        {stats ? (
+          <>
+            <div style={{ display: 'grid', gridTemplateColumns: `repeat(${effectiveMobile ? 3 : 4}, 1fr)`, gap: '12px', marginBottom: '12px' }}>
+              {[
+                ['Games', stats.games],
+                ['Avg Margin', `${stats.avgMargin} pts`],
+                ['Playoffs', stats.playoffMeetings],
+                ...(!effectiveMobile ? [['Momentum', stats.recentMomentum ? `${stats.recentMomentum.name.split(' ')[0]} (L3Y)` : 'Even']] : []),
+              ].map(([label, val]) => (
+                <div key={label}>
+                  <div style={{ fontSize: '9px', letterSpacing: '0.15em', textTransform: 'uppercase', color: muted, marginBottom: '3px' }}>{label}</div>
+                  <div style={{ fontSize: '13px', color: text, fontWeight: '500' }}>{val}</div>
                 </div>
+              ))}
+            </div>
+
+            {stats.biggestGame && (
+              <div style={{ borderTop: `1px solid ${border}`, paddingTop: '12px', display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
+                <div>
+                  <div style={{ fontSize: '9px', letterSpacing: '0.15em', textTransform: 'uppercase', color: muted, marginBottom: '3px' }}>Biggest Game</div>
+                  <div style={{ fontSize: '12px', color: text }}>
+                    {stats.biggestGame.winner.name.split(' ')[0]} won {stats.biggestGame.winnerScore}–{stats.biggestGame.loserScore} · {stats.biggestGame.year} Wk{stats.biggestGame.week}
+                    {stats.biggestGame.isPlayoff && <span style={{ color: gold, marginLeft: '6px', fontSize: '10px' }}>Playoff</span>}
+                  </div>
+                </div>
+                {stats.mostRecent && (
+                  <div>
+                    <div style={{ fontSize: '9px', letterSpacing: '0.15em', textTransform: 'uppercase', color: muted, marginBottom: '3px' }}>Most Recent</div>
+                    <div style={{ fontSize: '12px', color: text }}>
+                      {stats.mostRecentWinner?.name.split(' ')[0]} won · {stats.mostRecent.season?.year} Wk{stats.mostRecent.week}
+                      {stats.mostRecent.is_playoff && <span style={{ color: gold, marginLeft: '6px', fontSize: '10px' }}>Playoff</span>}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
-          </div>
+          </>
+        ) : (
+          <p style={{ fontSize: '12px', color: muted }}>No head-to-head history yet.</p>
         )}
       </div>
     )
@@ -233,25 +271,24 @@ export default function RivalriesPage() {
         <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: effectiveMobile ? '36px' : 'clamp(40px, 6vw, 72px)', fontWeight: '400', marginBottom: '8px', letterSpacing: '-0.02em' }}>
           Rivalries
         </h1>
-        <p style={{ color: muted, fontSize: '12px', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '32px' }}>
-          Rivalry score · 60% stats · 40% interpersonal
+        <p style={{ color: muted, fontSize: '12px', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px' }}>
+          The Rivalry Index · curated by the league
+        </p>
+        <p style={{ color: muted, fontSize: '13px', marginBottom: '32px', maxWidth: '560px', lineHeight: 1.6 }}>
+          Dan and Freed also share a table in a related league, Chat Room — the two are known collectively as the "Chatroomites."
         </p>
 
         <div style={{ display: 'flex', gap: '8px', marginBottom: '32px', flexWrap: 'wrap' }}>
-          {filterBtn(view === 'league', 'League-Wide', () => { setView('league'); setSelectedManager(null) })}
+          {filterBtn(view === 'league', 'Top 15', () => { setView('league'); setSelectedManager(null) })}
           {filterBtn(view === 'manager', 'By Manager', () => setView('manager'))}
         </div>
 
         {view === 'league' && (
           <div>
-            {allRivalries.slice(0, 20).map((r, i) => (
-              <RivalryCard
-                key={`${r.managerA.id}-${r.managerB.id}`}
-                rivalry={r}
-                showNarrative={true}
-              />
+            {leagueRivalries.map(r => (
+              <RivalryCard key={`${r.managerA.id}-${r.managerB.id}`} rivalry={r} />
             ))}
-            {allRivalries.length === 0 && (
+            {leagueRivalries.length === 0 && (
               <p style={{ color: muted, fontSize: '14px' }}>Loading rivalries...</p>
             )}
           </div>
@@ -260,7 +297,7 @@ export default function RivalriesPage() {
         {view === 'manager' && (
           <>
             <div style={{ display: 'grid', gridTemplateColumns: effectiveMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fill, minmax(160px, 1fr))', gap: '1px', background: border, marginBottom: '40px' }}>
-              {activeManagers.map(m => (
+              {managers.map(m => (
                 <div
                   key={m.id}
                   onClick={() => setSelectedManager(selectedManager?.id === m.id ? null : m)}
@@ -270,7 +307,9 @@ export default function RivalriesPage() {
                     outline: selectedManager?.id === m.id ? `2px solid ${d ? '#4455aa' : '#0d2152'}` : 'none',
                   }}
                 >
-                  <div style={{ fontFamily: "'Playfair Display', serif", fontSize: '15px', color: text }}>{m.name}</div>
+                  <div style={{ fontFamily: "'Playfair Display', serif", fontSize: '15px', color: text }}>
+                    {m.name}<ChatRoomiteTag slug={m.slug} />
+                  </div>
                 </div>
               ))}
             </div>
@@ -280,30 +319,10 @@ export default function RivalriesPage() {
                 <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: effectiveMobile ? '24px' : '32px', fontWeight: '400', marginBottom: '24px', color: text }}>
                   {selectedManager.name}'s Top 3 Rivals
                 </h2>
-                {getTop3Rivals(selectedManager).map((r, i) => {
-                  const rivalry = {
-                    managerA: selectedManager,
-                    managerB: r.opponent,
-                    stats: { ...r.stats, winsA: r.winsForManager, winsB: r.winsForOpponent },
-                    score: r.score,
-                  }
-                  return (
-                    <div key={r.opponent.id} style={{ position: 'relative', marginBottom: '2px' }}>
-                      {!effectiveMobile && (
-                        <div style={{ position: 'absolute', top: '24px', left: '-32px', fontFamily: "'Playfair Display', serif", fontSize: '18px', color: i === 0 ? gold : muted }}>
-                          #{i + 1}
-                        </div>
-                      )}
-                      {effectiveMobile && (
-                        <div style={{ fontSize: '10px', letterSpacing: '0.15em', textTransform: 'uppercase', color: i === 0 ? gold : muted, marginBottom: '6px' }}>
-                          Rival #{i + 1}
-                        </div>
-                      )}
-                      <RivalryCard rivalry={rivalry} showNarrative={true} />
-                    </div>
-                  )
-                })}
-                {getTop3Rivals(selectedManager).length === 0 && (
+                {managerRivalries(selectedManager).map(r => (
+                  <RivalryCard key={r.managerB.id} rivalry={r} />
+                ))}
+                {managerRivalries(selectedManager).length === 0 && (
                   <p style={{ color: muted, fontSize: '14px' }}>No rivalry data found.</p>
                 )}
               </>
