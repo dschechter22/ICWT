@@ -237,12 +237,6 @@ export default function SeasonPage() {
   const colStyle = { flex: 1, minWidth: effectiveMobile ? '150px' : '190px', maxWidth: effectiveMobile ? '170px' : '230px' }
   const roundLabel = (label) => <div style={{ fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', color: muted, marginBottom: '14px', textAlign: 'center' }}>{label}</div>
   const connector = <div style={{ width: '16px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={{ width: '16px', height: '1px', background: border }} /></div>
-  const getSeedMin = (g) => {
-    const ht = getTeamByManagerId(g.home_team?.manager_id)
-    const at = getTeamByManagerId(g.away_team?.manager_id)
-    return Math.min(getPlayoffSeed(ht?.id), getPlayoffSeed(at?.id))
-  }
-
   const render8TeamBracket = () => {
     const r1Games = playoffMatchups.filter(m => m.week === playoffWeeks[0])
     const r2Games = playoffMatchups.filter(m => m.week === playoffWeeks[1])
@@ -252,21 +246,28 @@ export default function SeasonPage() {
       getTeamByManagerId(g.home_team?.manager_id)?.id,
       getTeamByManagerId(g.away_team?.manager_id)?.id,
     ]
+    const gameSeeds = (g) => gameTeamIds(g).map(id => getPlayoffSeed(id)).sort((a, b) => a - b)
+    const hasSeeds = (g, a, b) => {
+      const [s1, s2] = gameSeeds(g)
+      return (s1 === a && s2 === b) || (s1 === b && s2 === a)
+    }
     const winnerTeamId = (g) => {
       const [homeId, awayId] = gameTeamIds(g)
       return g.home_score > g.away_score ? homeId : awayId
     }
 
-    // Only the 8 playoff qualifiers ever reach round 1 -- every round-1 game counts.
-    const sortedR1 = [...r1Games].sort((a, b) => getSeedMin(a) - getSeedMin(b))
-    const topHalf = sortedR1.filter(g => getSeedMin(g) <= 2)
-    const botHalf = sortedR1.filter(g => getSeedMin(g) > 2)
+    // Standard 8-team seeding: 1v8 and 4v5 feed one semifinal, 3v6 and 2v7
+    // feed the other -- display in that fixed bracket order, not by score.
+    const topHalfGames = [r1Games.find(g => hasSeeds(g, 1, 8)), r1Games.find(g => hasSeeds(g, 4, 5))].filter(Boolean)
+    const botHalfGames = [r1Games.find(g => hasSeeds(g, 3, 6)), r1Games.find(g => hasSeeds(g, 2, 7))].filter(Boolean)
+    const topHalfTeamIds = new Set(topHalfGames.flatMap(gameTeamIds))
     const r1Winners = new Set(r1Games.map(winnerTeamId))
 
     // Round 2 also carries the placement (5th-8th) bracket -- keep only the
     // games between two round-1 winners; those are the true semifinals.
     const semis = r2Games.filter(g => gameTeamIds(g).every(id => r1Winners.has(id)))
-    const sortedSemis = [...semis].sort((a, b) => getSeedMin(a) - getSeedMin(b))
+    const topSemi = semis.find(g => gameTeamIds(g).some(id => topHalfTeamIds.has(id)))
+    const botSemi = semis.find(g => g !== topSemi)
     const semiWinners = new Set(semis.map(winnerTeamId))
 
     // Round 3 likewise carries the 3rd/5th/7th place games -- the championship
@@ -277,17 +278,17 @@ export default function SeasonPage() {
       <div style={{ display: 'flex', gap: '0', minWidth: effectiveMobile ? '500px' : '640px' }}>
         <div style={colStyle}>
           {roundLabel('Round 1')}
-          {topHalf.map(g => <BracketGameCard key={g.id} game={g} />)}
+          {topHalfGames.map(g => <BracketGameCard key={g.id} game={g} />)}
           <div style={{ height: '16px' }} />
-          {botHalf.map(g => <BracketGameCard key={g.id} game={g} />)}
+          {botHalfGames.map(g => <BracketGameCard key={g.id} game={g} />)}
         </div>
         {connector}
         <div style={colStyle}>
           {roundLabel('Semifinals')}
           <div style={{ height: '46px' }} />
-          {sortedSemis.slice(0, 1).map(g => <BracketGameCard key={g.id} game={g} />)}
+          {topSemi && <BracketGameCard game={topSemi} />}
           <div style={{ height: '20px' }} />
-          {sortedSemis.slice(1, 2).map(g => <BracketGameCard key={g.id} game={g} />)}
+          {botSemi && <BracketGameCard game={botSemi} />}
         </div>
         {connector}
         <div style={colStyle}>
