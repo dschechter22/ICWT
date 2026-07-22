@@ -26,19 +26,19 @@ export default function HomePage() {
         {/* Hero */}
         <div style={{ marginBottom: effectiveMobile ? '48px' : '72px' }}>
           <p style={{ fontSize: '11px', letterSpacing: '0.25em', textTransform: 'uppercase', color: muted, marginBottom: '16px' }}>
-            Est. 2016 · Year 10
+            Est. 2017 · Year 9
           </p>
           <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: effectiveMobile ? '42px' : 'clamp(56px, 8vw, 96px)', fontWeight: '400', lineHeight: 1.05, letterSpacing: '-0.02em', marginBottom: '24px' }}>
             In Caleb<br />We Trust
           </h1>
           <p style={{ color: muted, fontSize: effectiveMobile ? '14px' : '16px', maxWidth: '480px', lineHeight: 1.7 }}>
-            10 years · 10 managers · one throne
+            9 years · 10 managers · one throne
           </p>
         </div>
 
         {/* Stats bar */}
         <div style={{ display: 'flex', gap: effectiveMobile ? '24px' : '48px', marginBottom: effectiveMobile ? '48px' : '72px', flexWrap: 'wrap' }}>
-          {[['10', 'Seasons'], ['10', 'Managers']].map(([num, label]) => (
+          {[['9', 'Seasons'], ['10', 'Managers']].map(([num, label]) => (
             <div key={label}>
               <div style={{ fontFamily: "'Playfair Display', serif", fontSize: effectiveMobile ? '36px' : '48px', color: text, lineHeight: 1 }}>{num}</div>
               <div style={{ fontSize: '11px', letterSpacing: '0.15em', textTransform: 'uppercase', color: muted, marginTop: '6px' }}>{label}</div>

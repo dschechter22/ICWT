@@ -135,7 +135,7 @@ create table draft_order (
 );
 
 -- ============================================================
--- sportsbook: gb_accounts ("Gimre Bucks" accounts)
+-- sportsbook: gb_accounts ("Dino Dollars" accounts)
 -- ============================================================
 create table gb_accounts (
   id uuid primary key default gen_random_uuid(),

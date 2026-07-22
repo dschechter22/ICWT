@@ -140,7 +140,7 @@ export default function SportsbookPage() {
     const amounts = slip.map((_, i) => parseInt(slipAmounts[i]) || 0)
     if (amounts.some(a => a <= 0)) return showFlash('Enter amounts for all bets', false)
     const total = amounts.reduce((a, b) => a + b, 0)
-    if (total > myAccount.balance) return showFlash('Insufficient Gimre Bucks', false)
+    if (total > myAccount.balance) return showFlash('Insufficient Dino Dollars', false)
     setSubmitting(true)
     await db.from('sb_bets').insert(slip.map((s, i) => ({ account_id: myAccount.id, game_id: s.gameId, bet_type: s.betType, pick: s.pick, amount: amounts[i], odds: s.odds, status: 'pending' })))
     const { data: fresh } = await db.from('gb_accounts').select('balance').eq('id', myAccount.id).single()
@@ -156,7 +156,7 @@ export default function SportsbookPage() {
     if (slip.length < 2) return showFlash('Parlays need 2+ legs', false)
     const amt = parseInt(parlayAmt)
     if (!amt || amt <= 0) return showFlash('Enter parlay amount', false)
-    if (amt > myAccount.balance) return showFlash('Insufficient Gimre Bucks', false)
+    if (amt > myAccount.balance) return showFlash('Insufficient Dino Dollars', false)
     setSubmitting(true)
     const combinedOdds = toAmerican(slip.reduce((a, s) => a * toDecimal(s.odds), 1))
     const { data: parlay } = await db.from('sb_parlays').insert({ account_id: myAccount.id, amount: amt, legs: slip.length, combined_odds: combinedOdds, status: 'pending' }).select().single()
@@ -303,7 +303,7 @@ export default function SportsbookPage() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
           <div>
             <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: effectiveMobile ? '36px' : 'clamp(40px,6vw,64px)', fontWeight: '400', letterSpacing: '-0.02em' }}>Sportsbook</h1>
-            {myAccount && <p style={{ fontSize: '13px', color: gold, marginTop: '4px' }}>💰 {myAccount.balance.toLocaleString()} Gimre Bucks</p>}
+            {myAccount && <p style={{ fontSize: '13px', color: gold, marginTop: '4px' }}>💰 {myAccount.balance.toLocaleString()} Dino Dollars</p>}
           </div>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
             {!playerName ? (
@@ -443,7 +443,7 @@ export default function SportsbookPage() {
                       </div>
                       {!isParlay && (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <input type="number" min="1" value={slipAmounts[i] || ''} onChange={e => setSlipAmounts(a => ({ ...a, [i]: e.target.value }))} placeholder="GB" style={{ ...inp, width: '80px', padding: '6px 10px' }} />
+                          <input type="number" min="1" value={slipAmounts[i] || ''} onChange={e => setSlipAmounts(a => ({ ...a, [i]: e.target.value }))} placeholder="DD" style={{ ...inp, width: '80px', padding: '6px 10px' }} />
                           {slipAmounts[i] && parseInt(slipAmounts[i]) > 0 && <span style={{ fontSize: '11px', color: green, whiteSpace: 'nowrap' }}>+{calcWin(parseInt(slipAmounts[i]), s.odds)}</span>}
                         </div>
                       )}
@@ -453,9 +453,9 @@ export default function SportsbookPage() {
                     <div style={{ borderTop: `1px solid ${border}`, paddingTop: '12px', marginTop: '4px' }}>
                       <div style={{ fontSize: '12px', color: muted, marginBottom: '8px' }}>
                         Combined: <strong style={{ color: text }}>{fmtOdds(toAmerican(slip.reduce((a, s) => a * toDecimal(s.odds), 1)))}</strong>
-                        {parlayAmt && parseInt(parlayAmt) > 0 && <> · Win: <strong style={{ color: green }}>{calcWin(parseInt(parlayAmt), toAmerican(slip.reduce((a, s) => a * toDecimal(s.odds), 1)))} GB</strong></>}
+                        {parlayAmt && parseInt(parlayAmt) > 0 && <> · Win: <strong style={{ color: green }}>{calcWin(parseInt(parlayAmt), toAmerican(slip.reduce((a, s) => a * toDecimal(s.odds), 1)))} DD</strong></>}
                       </div>
-                      <input type="number" min="1" value={parlayAmt} onChange={e => setParlayAmt(e.target.value)} placeholder="Stake (GB)" style={{ ...inp, width: '160px' }} />
+                      <input type="number" min="1" value={parlayAmt} onChange={e => setParlayAmt(e.target.value)} placeholder="Stake (DD)" style={{ ...inp, width: '160px' }} />
                     </div>
                   )}
                   {flash.msg && <p style={{ fontSize: '12px', color: flash.ok ? green : red, marginTop: '8px' }}>{flash.msg}</p>}
@@ -471,7 +471,7 @@ export default function SportsbookPage() {
         {/* ── PICK'EM ── */}
         {tab === 'pickem' && (
           <>
-            <p style={{ fontSize: '13px', color: muted, marginBottom: '20px' }}>Pick the straight-up winner. Correct pick = <strong style={{ color: gold }}>+20 Gimre Bucks</strong>. Free to enter.</p>
+            <p style={{ fontSize: '13px', color: muted, marginBottom: '20px' }}>Pick the straight-up winner. Correct pick = <strong style={{ color: gold }}>+20 Dino Dollars</strong>. Free to enter.</p>
             <div style={{ display: 'flex', gap: '6px', marginBottom: '20px', flexWrap: 'wrap', alignItems: 'center' }}>
               <span style={{ fontSize: '11px', color: muted, letterSpacing: '0.1em', textTransform: 'uppercase', marginRight: '4px' }}>Week</span>
               {weeks.map(w => <button key={w} onClick={() => setWeek(w)} style={{ background: week === w ? text : 'none', color: week === w ? bg : muted, border: `1px solid ${border}`, padding: '4px 10px', cursor: 'pointer', fontSize: '11px', fontFamily: "'Inter', sans-serif" }}>{w}</button>)}
@@ -488,7 +488,7 @@ export default function SportsbookPage() {
                     {existingPick ? (
                       <div style={{ fontSize: '12px', display: 'flex', gap: '12px', alignItems: 'center' }}>
                         <span style={{ color: muted }}>Picked: <strong style={{ color: text }}>{existingPick.pick === 'team_a' ? game.team_a : game.team_b}</strong></span>
-                        {existingPick.status !== 'pending' && <span style={{ fontWeight: '600', color: existingPick.status === 'won' ? green : red }}>{existingPick.status === 'won' ? '+20 GB ✓' : 'Lost'}</span>}
+                        {existingPick.status !== 'pending' && <span style={{ fontWeight: '600', color: existingPick.status === 'won' ? green : red }}>{existingPick.status === 'won' ? '+20 DD ✓' : 'Lost'}</span>}
                       </div>
                     ) : game.is_locked || game.is_settled ? (
                       <span style={{ fontSize: '12px', color: muted }}>Locked — no pick submitted</span>
@@ -529,9 +529,9 @@ export default function SportsbookPage() {
                         </div>
                         <div style={{ fontSize: '11px', color: muted }}>{bet.game?.team_a} vs {bet.game?.team_b} · Wk {bet.game?.week}</div>
                       </div>
-                      <span style={{ fontSize: '12px', color: muted }}>{bet.amount} GB</span>
+                      <span style={{ fontSize: '12px', color: muted }}>{bet.amount} DD</span>
                       <span style={{ fontSize: '12px', fontWeight: '600', color: bet.status === 'won' ? green : bet.status === 'lost' ? red : bet.status === 'push' ? muted : gold }}>
-                        {bet.status === 'won' ? `+${bet.win_amount} GB` : bet.status === 'lost' ? 'Lost' : bet.status === 'push' ? 'Push' : 'Pending'}
+                        {bet.status === 'won' ? `+${bet.win_amount} DD` : bet.status === 'lost' ? 'Lost' : bet.status === 'push' ? 'Push' : 'Pending'}
                       </span>
                     </div>
                   ))}
@@ -546,9 +546,9 @@ export default function SportsbookPage() {
                   {myParlays.map(p => (
                     <div key={p.id} style={{ background: cardBg, border: `1px solid ${border}`, padding: '14px 16px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                        <span style={{ fontSize: '12px', color: text }}>{p.legs.length}-Leg Parlay · {fmtOdds(p.combined_odds)} · {p.amount} GB</span>
+                        <span style={{ fontSize: '12px', color: text }}>{p.legs.length}-Leg Parlay · {fmtOdds(p.combined_odds)} · {p.amount} DD</span>
                         <span style={{ fontSize: '12px', fontWeight: '600', color: p.status === 'won' ? green : p.status === 'lost' ? red : gold }}>
-                          {p.status === 'won' ? `+${p.win_amount} GB` : p.status === 'lost' ? 'Lost' : 'Pending'}
+                          {p.status === 'won' ? `+${p.win_amount} DD` : p.status === 'lost' ? 'Lost' : 'Pending'}
                         </span>
                       </div>
                       {p.legs.map((leg, i) => (
@@ -574,7 +574,7 @@ export default function SportsbookPage() {
                         <div style={{ fontSize: '11px', color: muted }}>{bet.game?.team_a} vs {bet.game?.team_b} · Wk {bet.game?.week}</div>
                       </div>
                       <span style={{ fontSize: '12px', fontWeight: '600', color: bet.status === 'won' ? green : bet.status === 'lost' ? red : gold }}>
-                        {bet.status === 'won' ? '+20 GB' : bet.status === 'lost' ? 'Lost' : 'Pending'}
+                        {bet.status === 'won' ? '+20 DD' : bet.status === 'lost' ? 'Lost' : 'Pending'}
                       </span>
                     </div>
                   ))}
@@ -587,7 +587,7 @@ export default function SportsbookPage() {
         {/* ── LEADERBOARD ── */}
         {tab === 'leaderboard' && (
           <>
-            <p style={{ fontSize: '12px', color: muted, marginBottom: '20px' }}>Year-end Gimre Bucks total determines next season's draft order. Highest GB = first pick.</p>
+            <p style={{ fontSize: '12px', color: muted, marginBottom: '20px' }}>Year-end Dino Dollars total determines next season's draft order. Highest DD = first pick.</p>
             {accounts.length === 0 && <p style={{ color: muted, fontSize: '13px' }}>No accounts yet. Place a bet or make a pick to start.</p>}
             <div style={{ border: `1px solid ${border}` }}>
               {accounts.map((acc, i) => (
@@ -596,7 +596,7 @@ export default function SportsbookPage() {
                     {i + 1}{['st','nd','rd'][i] ?? 'th'}
                   </span>
                   <span style={{ fontFamily: "'Playfair Display', serif", fontSize: '16px', color: text }}>{acc.manager_name}</span>
-                  <span style={{ fontSize: '15px', fontWeight: '700', color: gold }}>{acc.balance.toLocaleString()} GB</span>
+                  <span style={{ fontSize: '15px', fontWeight: '700', color: gold }}>{acc.balance.toLocaleString()} DD</span>
                 </div>
               ))}
             </div>
