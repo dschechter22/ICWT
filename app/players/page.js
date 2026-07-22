@@ -19,7 +19,7 @@ export default function PlayersPage() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [posFilter, setPosFilter] = useState('All')
-  const [sortCol, setSortCol] = useState('careerAvg')
+  const [sortCol, setSortCol] = useState('totalFpts')
   const [sortDir, setSortDir] = useState('desc')
   const [mounted, setMounted] = useState(false)
 
