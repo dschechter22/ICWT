@@ -7,11 +7,7 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 )
-const MANAGER_COLORS = {
-  'dan': '#4285F4', 'wally': '#EA4335', 'john': '#FBBC04', 'braden': '#34A853',
-  'jm': '#FF6D00', 'big-e': '#46BDC6', 'mamby-tenner': '#7BAAF7', 'reid': '#F07B72',
-  'freed': '#FCD04F', 'caden': '#71C287', 'dav': '#aaaaaa', 'bern-tenner': '#cccccc',
-}
+const MANAGER_COLORS = {}
 export default function LJIndexPage() {
   const { d, effectiveMobile, bg, text, muted, border, cardBg, rowAlt, green, red } = useLayout()
   const [seasons, setSeasons] = useState([])

@@ -19,7 +19,6 @@ export default function StandingsPage() {
   const [expanded, setExpanded] = useState({})
   const [sortKey, setSortKey] = useState('championships')
   const [sortDir, setSortDir] = useState('desc')
-  const [era, setEra] = useState('all')
   const [includePlayoffs, setIncludePlayoffs] = useState(false)
 
   // Filters
@@ -40,11 +39,7 @@ export default function StandingsPage() {
     else { setSortKey(key); setSortDir('desc') }
   }
 
-  const eraYears = { all: null, pre: [2017, 2023], post: [2024, 2025] }
-
   const filteredTeams = teams.filter(t => {
-    const range = eraYears[era]
-    if (range && (t.season.year < range[0] || t.season.year > range[1])) return false
     const yr = t.season.year
     if (yearFrom !== 'all' && yr < parseInt(yearFrom)) return false
     if (yearTo !== 'all' && yr > parseInt(yearTo)) return false
@@ -52,16 +47,12 @@ export default function StandingsPage() {
   })
 
   const filteredSeasons = seasons.filter(s => {
-    const range = eraYears[era]
-    if (range && (s.year < range[0] || s.year > range[1])) return false
     if (yearFrom !== 'all' && s.year < parseInt(yearFrom)) return false
     if (yearTo !== 'all' && s.year > parseInt(yearTo)) return false
     return true
   })
 
   const filteredMatchups = matchups.filter(m => {
-    const range = eraYears[era]
-    if (range && (m.season?.year < range[0] || m.season?.year > range[1])) return false
     if (yearFrom !== 'all' && m.season?.year < parseInt(yearFrom)) return false
     if (yearTo !== 'all' && m.season?.year > parseInt(yearTo)) return false
     return true
@@ -279,12 +270,6 @@ export default function StandingsPage() {
             <option value="all">To Year</option>
             {allYears.map(y => <option key={y} value={y}>{y}</option>)}
           </select>
-        </div>
-
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
-          {filterBtn(era === 'all', 'All Years', () => setEra('all'))}
-          {filterBtn(era === 'pre', 'Pre-Danflation (2017–2023)', () => setEra('pre'))}
-          {filterBtn(era === 'post', 'Danflation Era (2024–2025)', () => setEra('post'))}
         </div>
 
         <div style={{ display: 'flex', gap: '8px', marginBottom: '32px', flexWrap: 'wrap' }}>

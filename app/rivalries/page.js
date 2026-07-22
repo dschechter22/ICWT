@@ -9,53 +9,9 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 )
 
-const INTERPERSONAL = {
-  'caden':        ['braden', 'mamby-tenner', 'big-e'],
-  'wally':        ['reid', 'john', 'dan', 'mamby-tenner'],
-  'mamby-tenner': ['john', 'wally', 'reid', 'dan'],
-  'braden':       ['caden', 'reid', 'wally', 'dan'],
-  'john':         ['reid', 'mamby-tenner', 'wally', 'freed'],
-  'jm':           ['braden', 'freed', 'dan'],
-  'freed':        ['dan', 'braden', 'wally', 'john', 'jm'],
-  'reid':         ['wally', 'john', 'mamby-tenner', 'dan', 'braden'],
-  'big-e':        ['wally', 'mamby-tenner', 'caden', 'freed'],
-  'dan':          ['caden', 'freed', 'braden', 'wally', 'mamby-tenner', 'reid'],
-  'dav':          [],
-  'bern-tenner':  [],
-}
+const INTERPERSONAL = {}
 
-// Fact-checked narratives
-const NARRATIVES = {
-  'dan-freed':            "Dan and Freed bicker about everything, and it extends to the virtual gridiron.",
-  'dan-caden':            "Really more like Dan vs Greg.",
-  'dan-mamby-tenner':     "Real Knicks fan vs fake Knicks fan.",
-  'dan-braden':           "Celiac vs epilepsy -- if both survive the season it is a win.",
-  'dan-wally':            "The two most successful teams since Danflation began in 2024.",
-  'dan-reid':             "Two autists competing.",
-  'braden-caden':         "Didn't hit puberty till 19 vs didn't have eyebrows till 19.",
-  'braden-wally':         "Wally put $200 on the table for Braden to prove he's a man. Braden declined.",
-  'braden-jm':            "The league's two historically worst records, meeting regularly to determine who has the worse season. Both ringless, both somehow still optimistic every August.",
-  'freed-wally':          "They both defiled the other one's shower. The fantasy record is almost a secondary concern at this point.",
-  'freed-john':           "John has made claims about the nature of Freed's relationship with his dog that are still being discussed in the group chat. The Springfield trip didn't help Freed's reputation either.",
-  'freed-jm':             "Freed has a ring. JM does not. But what happened in DC suggests the scoreboard doesn't tell the whole story of who the dominant one is in this matchup.",
-  'wally-reid':           "Julia Bibow's two boyfriends.",
-  'wally-mamby-tenner':   "Wally consistently finishes above where his roster suggests he should. Mamby's team is boom-or-bust and the head-to-head has gone both ways.",
-  'wally-john':           "The real Greek vs the fake Greek.",
-  'reid-john':            "John moved to Greece and his teams have declined steadily since. Reid has one ring and is still very much in the conversation. The gap has been growing.",
-  'reid-mamby-tenner':    "Reid's family had servants in the past. Mamby actively wants to bring servants back.",
-  'john-mamby-tenner':    "Two college hoopers -- one who is washed in fantasy, the other washed in basketball.",
-  'jm-dan':               "Absolute stats nerds, and only one of them has a ring.",
-  'jm-braden':            "The league's two historically worst records, meeting regularly to determine who has the worse season. Both ringless, both somehow still optimistic every August.",
-  'big-e-caden':          "A competition to see who can smoke the most, with fantasy football as a side activity.",
-  'big-e-wally':          "A Black Ops 3 rivalry that spilled into fantasy and never left.",
-  'big-e-freed':          "Freed wishes his fantasy career was as illustrious as Big E's.",
-  'big-e-mamby-tenner':   "Constant chirping in the chat. Big E has three rings to Mamby's one, and doesn't let Mamby forget it.",
-  'braden-reid':          "Braden has been in the league since the beginning and still has no ring. Reid joined five years later and won one in 2023. Braden has not moved on.",
-  'caden-mamby-tenner':   "There's real love between these two. The rivalry is affectionate, which makes it the exception in Caden's relationship with most of the league.",
-  'freed-dan':            "Dan and Freed bicker about everything, and it extends to the virtual gridiron.",
-  'wally-dan':            "The two most successful teams since Danflation began in 2024.",
-  'reid-dan':             "Two autists competing.",
-}
+const NARRATIVES = {}
 
 const getNarrative = (slugA, slugB) => {
   const key1 = `${slugA}-${slugB}`

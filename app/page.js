@@ -26,19 +26,19 @@ export default function HomePage() {
         {/* Hero */}
         <div style={{ marginBottom: effectiveMobile ? '48px' : '72px' }}>
           <p style={{ fontSize: '11px', letterSpacing: '0.25em', textTransform: 'uppercase', color: muted, marginBottom: '16px' }}>
-            Est. 2015 · Year 12
+            Est. 2016 · Year 10
           </p>
           <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: effectiveMobile ? '42px' : 'clamp(56px, 8vw, 96px)', fontWeight: '400', lineHeight: 1.05, letterSpacing: '-0.02em', marginBottom: '24px' }}>
             Fantasy<br />Chatroom
           </h1>
           <p style={{ color: muted, fontSize: effectiveMobile ? '14px' : '16px', maxWidth: '480px', lineHeight: 1.7 }}>
-            12 years · 10 managers · one throne
+            10 years · 10 managers · one throne
           </p>
         </div>
 
         {/* Stats bar */}
         <div style={{ display: 'flex', gap: effectiveMobile ? '24px' : '48px', marginBottom: effectiveMobile ? '48px' : '72px', flexWrap: 'wrap' }}>
-          {[['11', 'Seasons'], ['10', 'Active Managers'], ['12', 'Total Managers']].map(([num, label]) => (
+          {[['10', 'Seasons'], ['10', 'Active Managers'], ['10', 'Total Managers']].map(([num, label]) => (
             <div key={label}>
               <div style={{ fontFamily: "'Playfair Display', serif", fontSize: effectiveMobile ? '36px' : '48px', color: text, lineHeight: 1 }}>{num}</div>
               <div style={{ fontSize: '11px', letterSpacing: '0.15em', textTransform: 'uppercase', color: muted, marginTop: '6px' }}>{label}</div>
