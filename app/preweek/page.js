@@ -5,7 +5,7 @@ import Nav from '../../components/Nav'
 import { useLayout } from '../../hooks/useLayout'
 import {
   isPlayed, buildRatings, makeLine, leagueBaseline,
-  projectedStarterPoints, fmtOdds, fmtSpread,
+  projectedStarterPoints, projectedWeekScore, fmtOdds, fmtSpread,
 } from '../../lib/predictions'
 import { REG_SEASON_WEEKS, buildFixtures } from '../../lib/schedule'
 import {
@@ -30,6 +30,7 @@ export default function PreweekPage() {
   const [matchups, setMatchups] = useState([])
   const [allMatchups, setAllMatchups] = useState([])
   const [rosterProj, setRosterProj] = useState({})
+  const [rosterEntriesByTeam, setRosterEntriesByTeam] = useState({})
   const [baseline, setBaseline] = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -84,13 +85,15 @@ export default function PreweekPage() {
       setBaseline(leagueBaseline((mRes.data || []).filter(x => x.season?.year < selectedYear)))
       if (t.length) {
         const { data } = await supabase.from('roster_entries')
-          .select('team_id, avg_pts, player:player_id(position)')
+          .select('team_id, avg_pts, stats, player:player_id(position)')
           .in('team_id', t.map(x => x.id))
         const byTeam = {}
         ;(data || []).forEach(e => { (byTeam[e.team_id] ||= []).push(e) })
         setRosterProj(Object.fromEntries(Object.entries(byTeam).map(([k, v]) => [k, projectedStarterPoints(v)])))
+        setRosterEntriesByTeam(byTeam)
       } else {
         setRosterProj({})
+        setRosterEntriesByTeam({})
       }
       setLoading(false)
     })
@@ -114,9 +117,17 @@ export default function PreweekPage() {
     [matchups, teams, isCurrentSeason],
   )
 
+  // A genuine forward projection for the week being priced, built from
+  // uploaded per-player weekly projections (falls back to nothing for a week
+  // that has none, so buildRatings quietly leans on the model instead).
+  const weeklyProj = useMemo(
+    () => Object.fromEntries(Object.entries(rosterEntriesByTeam).map(([k, v]) => [k, projectedWeekScore(v, week)])),
+    [rosterEntriesByTeam, week],
+  )
+
   const ratings = useMemo(
-    () => (teams.length ? buildRatings({ teams, matchups, throughWeek: week - 1, rosterProj, baseline }) : null),
-    [teams, matchups, week, rosterProj, baseline],
+    () => (teams.length ? buildRatings({ teams, matchups, throughWeek: week - 1, rosterProj, baseline, weeklyProj }) : null),
+    [teams, matchups, week, rosterProj, baseline, weeklyProj],
   )
 
   const hasSignal = !!ratings && ratings.rows.some(r => r.rating > 0)

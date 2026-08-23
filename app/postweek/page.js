@@ -5,7 +5,7 @@ import Nav from '../../components/Nav'
 import { useLayout } from '../../hooks/useLayout'
 import {
   isPlayed, buildRatings, simulateFutures,
-  projectedStarterPoints, fmtSpread, leagueBaseline,
+  projectedStarterPoints, projectedWeekScore, fmtSpread, leagueBaseline,
 } from '../../lib/predictions'
 import { REG_SEASON_WEEKS, buildFixtures } from '../../lib/schedule'
 import { gradeWeek, modelRecord, superlatives } from '../../lib/postweek'
@@ -25,6 +25,7 @@ export default function PostweekPage() {
   const [teams, setTeams] = useState([])
   const [matchups, setMatchups] = useState([])
   const [rosterProj, setRosterProj] = useState({})
+  const [rosterEntriesByTeam, setRosterEntriesByTeam] = useState({})
   const [baseline, setBaseline] = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -63,13 +64,15 @@ export default function PostweekPage() {
       setBaseline(leagueBaseline((mRes.data || []).filter(x => x.season?.year < selectedYear)))
       if (t.length) {
         const { data } = await supabase.from('roster_entries')
-          .select('team_id, avg_pts, player:player_id(position)')
+          .select('team_id, avg_pts, stats, player:player_id(position)')
           .in('team_id', t.map(x => x.id))
         const byTeam = {}
         ;(data || []).forEach(e => { (byTeam[e.team_id] ||= []).push(e) })
         setRosterProj(Object.fromEntries(Object.entries(byTeam).map(([k, v]) => [k, projectedStarterPoints(v)])))
+        setRosterEntriesByTeam(byTeam)
       } else {
         setRosterProj({})
+        setRosterEntriesByTeam({})
       }
       setLoading(false)
     })
@@ -97,16 +100,24 @@ export default function PostweekPage() {
     isCurrentSeason ? REG_SEASON_WEEKS : 0,
   ) || REG_SEASON_WEEKS
 
+  // A genuine forward projection for the week being graded, built from
+  // uploaded per-player weekly projections (falls back to nothing for a week
+  // that has none, so the model grades on its own for those).
+  const weeklyProjForWeek = useMemo(
+    () => Object.fromEntries(Object.entries(rosterEntriesByTeam).map(([k, v]) => [k, projectedWeekScore(v, week)])),
+    [rosterEntriesByTeam, week],
+  )
+
   const games = useMemo(
-    () => (week ? gradeWeek({ teams, matchups, rosterProj, baseline, week }) : []),
-    [teams, matchups, rosterProj, baseline, week],
+    () => (week ? gradeWeek({ teams, matchups, rosterProj, baseline, weeklyProj: weeklyProjForWeek, week }) : []),
+    [teams, matchups, rosterProj, baseline, weeklyProjForWeek, week],
   )
 
   const awards = useMemo(() => superlatives(games), [games])
 
   const record = useMemo(
-    () => (week ? modelRecord({ teams, matchups, rosterProj, baseline, throughWeek: week }) : null),
-    [teams, matchups, rosterProj, baseline, week],
+    () => (week ? modelRecord({ teams, matchups, rosterProj, baseline, weeklyProjByWeek: { [week]: weeklyProjForWeek }, throughWeek: week }) : null),
+    [teams, matchups, rosterProj, baseline, weeklyProjForWeek, week],
   )
 
   // Standings picture entering and leaving the week.
@@ -118,7 +129,7 @@ export default function PostweekPage() {
   // Two simulations — the season as it looked before the week, and after it.
   useEffect(() => {
     if (!week || !teams.length || !after) { setSwing(null); return }
-    const before = buildRatings({ teams, matchups, throughWeek: week - 1, rosterProj, baseline })
+    const before = buildRatings({ teams, matchups, throughWeek: week - 1, rosterProj, baseline, weeklyProj: weeklyProjForWeek })
     if (!after.rows.some(r => r.rating > 0)) { setSwing(null); return }
     setSimming(true)
     const id = setTimeout(() => {
@@ -138,7 +149,7 @@ export default function PostweekPage() {
       setSimming(false)
     }, 0)
     return () => clearTimeout(id)
-  }, [week, teams, matchups, rosterProj, baseline, fixtures, regWeeks, after])
+  }, [week, teams, matchups, rosterProj, baseline, weeklyProjForWeek, fixtures, regWeeks, after])
 
   const swingRows = useMemo(() => {
     if (!swing || !after) return []
