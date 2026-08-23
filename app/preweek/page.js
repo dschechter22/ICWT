@@ -2,6 +2,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { supabase, LEAGUE_ID } from '../../lib/supabase'
 import Nav from '../../components/Nav'
+import MatchupDrawer from '../../components/MatchupDrawer'
 import { useLayout } from '../../hooks/useLayout'
 import {
   isPlayed, buildRatings, makeLine, leagueBaseline,
@@ -40,6 +41,7 @@ export default function PreweekPage() {
   const [simming, setSimming] = useState(false)
   const [rootFor, setRootFor] = useState('')
   const [openH2H, setOpenH2H] = useState(null)
+  const [drawerMatchup, setDrawerMatchup] = useState(null)
 
   useEffect(() => { setMounted(true) }, [])
 
@@ -264,7 +266,11 @@ export default function PreweekPage() {
                         <div style={{ ...micro, marginTop: '4px' }}>Stakes</div>
                       </div>
                       <div style={{ flex: 1, minWidth: '200px' }}>
-                        <div style={{ fontFamily: "'Playfair Display', serif", fontSize: effectiveMobile ? '18px' : '22px', marginBottom: '4px' }}>
+                        <div
+                          onClick={() => setDrawerMatchup({ home: c.a.team, away: c.b.team })}
+                          style={{ fontFamily: "'Playfair Display', serif", fontSize: effectiveMobile ? '18px' : '22px', marginBottom: '4px', cursor: 'pointer' }}
+                          title="View projected lineups"
+                        >
                           {c.a.name} <span style={{ fontSize: '13px', color: muted, fontFamily: "'Inter', sans-serif" }}>vs</span> {c.b.name}
                         </div>
                         <div style={{ fontSize: '11px', color: muted }}>
@@ -431,6 +437,16 @@ export default function PreweekPage() {
           </div>
         )}
       </div>
+
+      {drawerMatchup && (
+        <MatchupDrawer
+          homeTeam={drawerMatchup.home}
+          awayTeam={drawerMatchup.away}
+          week={week}
+          regWeeks={regWeeks}
+          onClose={() => setDrawerMatchup(null)}
+        />
+      )}
     </div>
   )
 }

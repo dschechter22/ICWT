@@ -2,6 +2,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { supabase, LEAGUE_ID } from '../../lib/supabase'
 import Nav from '../../components/Nav'
+import MatchupDrawer from '../../components/MatchupDrawer'
 import { useLayout } from '../../hooks/useLayout'
 import {
   PLAYOFF_SPOTS, BYE_SPOTS,
@@ -39,6 +40,7 @@ export default function PredictionsPage() {
 
   const [copied, setCopied] = useState(false)
   const [adminUnlocked, setAdminUnlocked] = useState(false)
+  const [drawerMatchup, setDrawerMatchup] = useState(null)
   const [showPinModal, setShowPinModal] = useState(false)
   const [pinInput, setPinInput] = useState('')
   const [pinError, setPinError] = useState('')
@@ -426,7 +428,11 @@ export default function PredictionsPage() {
                         <div style={{ padding: '16px 20px', borderBottom: `1px solid ${border}` }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
                             <div>
-                              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: '18px', color: text }}>
+                              <div
+                                onClick={() => setDrawerMatchup({ home: a.team, away: b.team })}
+                                style={{ fontFamily: "'Playfair Display', serif", fontSize: '18px', color: text, cursor: 'pointer' }}
+                                title="View projected lineups"
+                              >
                                 {a.name} <span style={{ color: muted, fontSize: '13px' }}>vs</span> {b.name}
                               </div>
                               <div style={{ fontSize: '11px', color: muted, marginTop: '3px' }}>
@@ -694,6 +700,16 @@ export default function PredictionsPage() {
           </>
         )}
       </div>
+
+      {drawerMatchup && (
+        <MatchupDrawer
+          homeTeam={drawerMatchup.home}
+          awayTeam={drawerMatchup.away}
+          week={week}
+          regWeeks={regWeeks}
+          onClose={() => setDrawerMatchup(null)}
+        />
+      )}
     </div>
   )
 }

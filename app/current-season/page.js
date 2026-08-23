@@ -50,6 +50,9 @@ export default function CurrentSeasonPage() {
   // ── sportsbook state ──
   const [sbGames, setSbGames] = useState([])
 
+  // ── rosters state ──
+  const [rosterEntries, setRosterEntries] = useState([])
+
   useEffect(() => { setMounted(true) }, [])
 
   useEffect(() => {
@@ -77,6 +80,14 @@ export default function CurrentSeasonPage() {
   }, [])
 
   const fetchDraft = () => supabase.from('draft_order').select('*').eq('season', SEASON).order('pick_number').then(({ data }) => setPicks(data || []))
+
+  useEffect(() => {
+    if (!teams.length) { setRosterEntries([]); return }
+    supabase.from('roster_entries')
+      .select('*, player:player_id(id, name, position)')
+      .in('team_id', teams.map(t => t.id))
+      .then(({ data }) => setRosterEntries(data || []))
+  }, [teams])
 
   const handlePinSubmit = () => {
     if (pinInput !== ADMIN_PIN) { setPinError('Incorrect PIN'); return }
@@ -428,6 +439,48 @@ export default function CurrentSeasonPage() {
             </div>
           )}
         </div>
+
+        {/* ── SECTION: ROSTERS ── */}
+        {teams.length > 0 && (
+          <div style={{ marginBottom: '64px' }}>
+            <SectionLabel id="rosters">Rosters</SectionLabel>
+            <div style={{ display: 'grid', gridTemplateColumns: effectiveMobile ? '1fr' : 'repeat(2, 1fr)', gap: '1px', background: border }}>
+              {[...teams].sort((a, b) => (a.manager?.name || '').localeCompare(b.manager?.name || '')).map(t => {
+                const posOrder = ['QB', 'RB', 'WR', 'TE', 'K', 'D/ST']
+                const players = rosterEntries.filter(e => e.team_id === t.id)
+                  .sort((a, b) => posOrder.indexOf(a.player?.position) - posOrder.indexOf(b.player?.position))
+                const posColor = pos => ({ QB: '#4285F4', RB: '#34A853', WR: '#FBBC04', TE: '#EA4335', K: '#46BDC6', 'D/ST': '#7BAAF7' }[pos] || muted)
+                return (
+                  <div key={t.id} style={{ background: cardBg, padding: '18px 20px' }}>
+                    <div style={{ fontFamily: "'Playfair Display', serif", fontSize: '17px', color: text, marginBottom: '2px' }}>
+                      {t.manager?.name || '—'}
+                    </div>
+                    <div style={{ fontSize: '11px', color: muted, marginBottom: '12px' }}>{t.team_name}</div>
+                    {players.length === 0 ? (
+                      <div style={{ fontSize: '12px', color: muted }}>No roster on file.</div>
+                    ) : (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                        {players.map(e => (
+                          <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: '5px', border: `1px solid ${border}`, padding: '3px 8px 3px 3px' }}>
+                            <span style={{
+                              fontSize: '9px', fontWeight: '700', letterSpacing: '0.04em',
+                              color: posColor(e.player?.position),
+                              background: posColor(e.player?.position) + '18',
+                              padding: '2px 4px',
+                            }}>
+                              {e.player?.position}
+                            </span>
+                            <span style={{ fontSize: '12px', color: text }}>{e.player?.name || '—'}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
 
         {/* ── SECTION 2: STANDINGS ── */}
         {standings.length > 0 && (
