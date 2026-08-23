@@ -5,7 +5,7 @@ import Nav from '../../components/Nav'
 import MatchupDrawer from '../../components/MatchupDrawer'
 import { useLayout } from '../../hooks/useLayout'
 import {
-  PLAYOFF_SPOTS, BYE_SPOTS,
+  PLAYOFF_SPOTS,
   isPlayed, buildRatings, makeLine, simulateFutures,
   projectedStarterPoints, projectedWeekScore, fmtOdds, fmtSpread, leagueBaseline,
 } from '../../lib/predictions'
@@ -535,7 +535,7 @@ export default function PredictionsPage() {
             {!simming && futuresRows.length > 0 && (
               <>
                 <p style={{ fontSize: '12px', color: muted, marginBottom: '24px', lineHeight: 1.7 }}>
-                  {SIMS.toLocaleString()} simulated seasons — {futures.gamesLeft} games left, top {PLAYOFF_SPOTS} make the playoffs, top {BYE_SPOTS} get a bye.
+                  {SIMS.toLocaleString()} simulated seasons — {futures.gamesLeft} games left, top {PLAYOFF_SPOTS} make the playoffs.
                   {futures.assumedSchedule && ' Remaining pairings aren\'t posted yet, so unscheduled weeks are simulated as neutral random matchups.'}
                 </p>
 
@@ -560,8 +560,8 @@ export default function PredictionsPage() {
                             <span style={{ color: muted, fontSize: '11px' }}> · proj {f.winsMean.toFixed(1)} W</span>
                           </div>
                         </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
-                          {[['Playoffs', 'playoffs'], ['Bye', 'bye'], ['Semis', 'semis'], ['Finals', 'finals']].map(([label, key]) => (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+                          {[['Playoffs', 'playoffs'], ['Semis', 'semis'], ['Finals', 'finals']].map(([label, key]) => (
                             <div key={key}>
                               <div style={{ ...micro, marginBottom: '2px' }}>{label}</div>
                               <div style={{ fontSize: '12px', color: text }}>{fmtOdds(f.markets[key].odds)}</div>
@@ -583,7 +583,6 @@ export default function PredictionsPage() {
                           <th style={hStyle('center')}>Proj Record</th>
                           <th style={hStyle('center')}>Win Total</th>
                           <th style={hStyle('center')}>Playoffs</th>
-                          <th style={hStyle('center')}>Bye</th>
                           <th style={hStyle('center')}>Semis</th>
                           <th style={hStyle('center')}>Finals</th>
                           <th style={hStyle('center')}>Title</th>
@@ -609,7 +608,6 @@ export default function PredictionsPage() {
                                 <div style={{ fontSize: '10px', color: muted }}>O {fmtOdds(f.oddsOver)} / U {fmtOdds(f.oddsUnder)}</div>
                               </td>
                               <td style={cStyle('center')}><OddsCell market={f.markets.playoffs} /></td>
-                              <td style={cStyle('center')}><OddsCell market={f.markets.bye} /></td>
                               <td style={cStyle('center')}><OddsCell market={f.markets.semis} /></td>
                               <td style={cStyle('center')}><OddsCell market={f.markets.finals} /></td>
                               <td style={{ ...cStyle('center'), color: i === 0 ? gold : text }}><OddsCell market={f.markets.title} /></td>
@@ -623,7 +621,6 @@ export default function PredictionsPage() {
 
                 <p style={{ fontSize: '11px', color: muted, marginTop: '20px', lineHeight: 1.7 }}>
                   Odds carry a 5% hold, so the two sides of each market add to more than 100% — same as a real book.
-                  Semifinal odds include the top {BYE_SPOTS} seeds, who skip the first round.
                 </p>
               </>
             )}
@@ -688,9 +685,9 @@ export default function PredictionsPage() {
               </p>
               <p style={{ marginBottom: '14px' }}>
                 <strong style={{ color: text }}>Futures</strong> run {SIMS.toLocaleString()} full seasons game by game from the current
-                standings, seed by wins then points for, and play out the {PLAYOFF_SPOTS}-team bracket with byes for the top {BYE_SPOTS}.
-                Win totals, playoff, bye, semifinal, final and title prices are all read off the same simulation, so they stay consistent
-                with each other.
+                standings, seed by wins then points for, and play out the {PLAYOFF_SPOTS}-team bracket (1v8/4v5 and 3v6/2v7 feed the two
+                semifinals, same as the real playoff bracket — no byes, since 8 is already a clean field). Win totals, playoff, semifinal,
+                final and title prices are all read off the same simulation, so they stay consistent with each other.
               </p>
               <p>
                 Spreads and totals are priced at -110 a side; everything else carries a 5% hold.
