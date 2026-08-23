@@ -36,7 +36,7 @@ export default function PostweekPage() {
   useEffect(() => { setMounted(true) }, [])
 
   useEffect(() => {
-    supabase.from('seasons').select('year, season_number').eq('league_id', LEAGUE_ID).order('year', { ascending: false })
+    supabase.from('seasons').select('year, season_number').order('year', { ascending: false })
       .then(({ data }) => {
         setSeasons(data || [])
         if (data?.length) setSelectedYear(data[0].year)

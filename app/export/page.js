@@ -40,7 +40,7 @@ export default function ExportPage() {
     const load = async () => {
       const [{ data: mgrs }, { data: szns }, { data: tms }, { data: mups }, { data: allMups }] = await Promise.all([
         supabase.from('managers').select('*').eq('league_id', LEAGUE_ID),
-        supabase.from('seasons').select('*, champion:champion_id(id, name), mol_bowl_winner:mol_bowl_winner_id(id, name), mol_bowl_loser:mol_bowl_loser_id(id, name)').eq('league_id', LEAGUE_ID),
+        supabase.from('seasons').select('*, champion:champion_id(id, name), mol_bowl_winner:mol_bowl_winner_id(id, name), mol_bowl_loser:mol_bowl_loser_id(id, name)'),
         supabase.from('teams').select('*, manager:manager_id(id, name, slug), season:season_id(id, year)').eq('league_id', LEAGUE_ID),
         supabase.from('matchups')
           .select('*, home_team:home_team_id(id, manager_id), away_team:away_team_id(id, manager_id), season:season_id(year)')
