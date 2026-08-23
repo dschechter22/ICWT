@@ -140,7 +140,7 @@ export default function SportsbookPage() {
     const amounts = slip.map((_, i) => parseInt(slipAmounts[i]) || 0)
     if (amounts.some(a => a <= 0)) return showFlash('Enter amounts for all bets', false)
     const total = amounts.reduce((a, b) => a + b, 0)
-    if (total > myAccount.balance) return showFlash('Insufficient Dino Dollars', false)
+    if (total > myAccount.balance) return showFlash('Insufficient Parenti Bucks', false)
     setSubmitting(true)
     await db.from('sb_bets').insert(slip.map((s, i) => ({ account_id: myAccount.id, game_id: s.gameId, bet_type: s.betType, pick: s.pick, amount: amounts[i], odds: s.odds, status: 'pending' })))
     const { data: fresh } = await db.from('gb_accounts').select('balance').eq('id', myAccount.id).single()
@@ -156,7 +156,7 @@ export default function SportsbookPage() {
     if (slip.length < 2) return showFlash('Parlays need 2+ legs', false)
     const amt = parseInt(parlayAmt)
     if (!amt || amt <= 0) return showFlash('Enter parlay amount', false)
-    if (amt > myAccount.balance) return showFlash('Insufficient Dino Dollars', false)
+    if (amt > myAccount.balance) return showFlash('Insufficient Parenti Bucks', false)
     setSubmitting(true)
     const combinedOdds = toAmerican(slip.reduce((a, s) => a * toDecimal(s.odds), 1))
     const { data: parlay } = await db.from('sb_parlays').insert({ account_id: myAccount.id, amount: amt, legs: slip.length, combined_odds: combinedOdds, status: 'pending' }).select().single()
@@ -303,7 +303,7 @@ export default function SportsbookPage() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
           <div>
             <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: effectiveMobile ? '36px' : 'clamp(40px,6vw,64px)', fontWeight: '400', letterSpacing: '-0.02em' }}>Sportsbook</h1>
-            {myAccount && <p style={{ fontSize: '13px', color: gold, marginTop: '4px' }}>💰 {myAccount.balance.toLocaleString()} Dino Dollars</p>}
+            {myAccount && <p style={{ fontSize: '13px', color: gold, marginTop: '4px' }}>💰 {myAccount.balance.toLocaleString()} Parenti Bucks</p>}
           </div>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
             {!playerName ? (
@@ -471,7 +471,7 @@ export default function SportsbookPage() {
         {/* ── PICK'EM ── */}
         {tab === 'pickem' && (
           <>
-            <p style={{ fontSize: '13px', color: muted, marginBottom: '20px' }}>Pick the straight-up winner. Correct pick = <strong style={{ color: gold }}>+20 Dino Dollars</strong>. Free to enter.</p>
+            <p style={{ fontSize: '13px', color: muted, marginBottom: '20px' }}>Pick the straight-up winner. Correct pick = <strong style={{ color: gold }}>+20 Parenti Bucks</strong>. Free to enter.</p>
             <div style={{ display: 'flex', gap: '6px', marginBottom: '20px', flexWrap: 'wrap', alignItems: 'center' }}>
               <span style={{ fontSize: '11px', color: muted, letterSpacing: '0.1em', textTransform: 'uppercase', marginRight: '4px' }}>Week</span>
               {weeks.map(w => <button key={w} onClick={() => setWeek(w)} style={{ background: week === w ? text : 'none', color: week === w ? bg : muted, border: `1px solid ${border}`, padding: '4px 10px', cursor: 'pointer', fontSize: '11px', fontFamily: "'Inter', sans-serif" }}>{w}</button>)}
@@ -488,7 +488,7 @@ export default function SportsbookPage() {
                     {existingPick ? (
                       <div style={{ fontSize: '12px', display: 'flex', gap: '12px', alignItems: 'center' }}>
                         <span style={{ color: muted }}>Picked: <strong style={{ color: text }}>{existingPick.pick === 'team_a' ? game.team_a : game.team_b}</strong></span>
-                        {existingPick.status !== 'pending' && <span style={{ fontWeight: '600', color: existingPick.status === 'won' ? green : red }}>{existingPick.status === 'won' ? '+20 DD ✓' : 'Lost'}</span>}
+                        {existingPick.status !== 'pending' && <span style={{ fontWeight: '600', color: existingPick.status === 'won' ? green : red }}>{existingPick.status === 'won' ? '+20 PB ✓' : 'Lost'}</span>}
                       </div>
                     ) : game.is_locked || game.is_settled ? (
                       <span style={{ fontSize: '12px', color: muted }}>Locked — no pick submitted</span>
@@ -587,7 +587,7 @@ export default function SportsbookPage() {
         {/* ── LEADERBOARD ── */}
         {tab === 'leaderboard' && (
           <>
-            <p style={{ fontSize: '12px', color: muted, marginBottom: '20px' }}>Year-end Dino Dollars total determines next season's draft order. Highest DD = first pick.</p>
+            <p style={{ fontSize: '12px', color: muted, marginBottom: '20px' }}>Year-end Parenti Bucks total determines next season's draft order. Highest PB = first pick.</p>
             {accounts.length === 0 && <p style={{ color: muted, fontSize: '13px' }}>No accounts yet. Place a bet or make a pick to start.</p>}
             <div style={{ border: `1px solid ${border}` }}>
               {accounts.map((acc, i) => (
