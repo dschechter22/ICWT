@@ -4,6 +4,7 @@ import { supabase, LEAGUE_ID } from '../../lib/supabase'
 import Nav from '../../components/Nav'
 import { useLayout } from '../../hooks/useLayout'
 import { liveTeamScore } from '../../lib/scoring'
+import { resolveSchedule, REG_SEASON_WEEKS } from '../../lib/schedule'
 export const dynamic = 'force-dynamic'
 
 const SEASON_YEAR = 2026
@@ -72,8 +73,28 @@ export default function ScoreboardPage() {
     return () => clearInterval(id)
   }, [loadWeekStats])
 
-  const weekMatchups = useMemo(() => matchups.filter(m => m.week === week), [matchups, week])
-  const regWeeks = matchups.length ? Math.max(...matchups.map(m => m.week)) : 1
+  // Real matchup rows come from the DB once ESPN syncs them; until then, the
+  // league's known fixed schedule fills in so an unplayed week still shows a
+  // scoreboard instead of "no matchups."
+  const fixedGames = useMemo(() => (teams.length ? resolveSchedule(teams).games : []), [teams])
+
+  const weekMatchups = useMemo(() => {
+    const real = matchups.filter(m => m.week === week)
+    const realPairs = new Set(real.map(m => `${m.home_team_id}-${m.away_team_id}`))
+    const teamsById = Object.fromEntries(teams.map(t => [t.id, t]))
+    const fixed = fixedGames
+      .filter(g => g.week === week && !realPairs.has(`${g.homeId}-${g.awayId}`))
+      .map(g => ({
+        id: `fixed-${g.homeId}-${g.awayId}`,
+        home_team_id: g.homeId, away_team_id: g.awayId,
+        home_team: teamsById[g.homeId], away_team: teamsById[g.awayId],
+        home_score: null, away_score: null,
+      }))
+      .filter(g => g.home_team && g.away_team)
+    return [...real, ...fixed]
+  }, [matchups, week, fixedGames, teams])
+
+  const regWeeks = Math.max(matchups.length ? Math.max(...matchups.map(m => m.week)) : 0, REG_SEASON_WEEKS)
 
   const teamLive = useMemo(() => {
     const byTeam = {}
