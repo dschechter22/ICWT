@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { supabase, LEAGUE_ID } from '../../lib/supabase'
 import Nav from '../../components/Nav'
 import { useLayout } from '../../hooks/useLayout'
+import { projectedWeekLineup } from '../../lib/predictions'
 export const dynamic = 'force-dynamic'
 
 const ADMIN_PIN = '2910'
@@ -52,6 +53,8 @@ export default function CurrentSeasonPage() {
 
   // ── rosters state ──
   const [rosterEntries, setRosterEntries] = useState([])
+  const [rosterTeamId, setRosterTeamId] = useState(null)
+  const [rosterWeek, setRosterWeek] = useState(1)
 
   useEffect(() => { setMounted(true) }, [])
 
@@ -87,6 +90,10 @@ export default function CurrentSeasonPage() {
       .select('*, player:player_id(id, name, position)')
       .in('team_id', teams.map(t => t.id))
       .then(({ data }) => setRosterEntries(data || []))
+    if (!rosterTeamId) {
+      const sorted = [...teams].sort((a, b) => (a.manager?.name || '').localeCompare(b.manager?.name || ''))
+      setRosterTeamId(sorted[0]?.id || null)
+    }
   }, [teams])
 
   const handlePinSubmit = () => {
@@ -441,46 +448,93 @@ export default function CurrentSeasonPage() {
         </div>
 
         {/* ── SECTION: ROSTERS ── */}
-        {teams.length > 0 && (
-          <div style={{ marginBottom: '64px' }}>
-            <SectionLabel id="rosters">Rosters</SectionLabel>
-            <div style={{ display: 'grid', gridTemplateColumns: effectiveMobile ? '1fr' : 'repeat(2, 1fr)', gap: '1px', background: border }}>
-              {[...teams].sort((a, b) => (a.manager?.name || '').localeCompare(b.manager?.name || '')).map(t => {
-                const posOrder = ['QB', 'RB', 'WR', 'TE', 'K', 'D/ST']
-                const players = rosterEntries.filter(e => e.team_id === t.id)
-                  .sort((a, b) => posOrder.indexOf(a.player?.position) - posOrder.indexOf(b.player?.position))
-                const posColor = pos => ({ QB: '#4285F4', RB: '#34A853', WR: '#FBBC04', TE: '#EA4335', K: '#46BDC6', 'D/ST': '#7BAAF7' }[pos] || muted)
-                return (
-                  <div key={t.id} style={{ background: cardBg, padding: '18px 20px' }}>
-                    <div style={{ fontFamily: "'Playfair Display', serif", fontSize: '17px', color: text, marginBottom: '2px' }}>
-                      {t.manager?.name || '—'}
-                    </div>
-                    <div style={{ fontSize: '11px', color: muted, marginBottom: '12px' }}>{t.team_name}</div>
-                    {players.length === 0 ? (
-                      <div style={{ fontSize: '12px', color: muted }}>No roster on file.</div>
-                    ) : (
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                        {players.map(e => (
-                          <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: '5px', border: `1px solid ${border}`, padding: '3px 8px 3px 3px' }}>
-                            <span style={{
-                              fontSize: '9px', fontWeight: '700', letterSpacing: '0.04em',
-                              color: posColor(e.player?.position),
-                              background: posColor(e.player?.position) + '18',
-                              padding: '2px 4px',
-                            }}>
-                              {e.player?.position}
-                            </span>
-                            <span style={{ fontSize: '12px', color: text }}>{e.player?.name || '—'}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )
-              })}
+        {teams.length > 0 && (() => {
+          const rosterPosColor = pos => ({ QB: '#4285F4', RB: '#34A853', WR: '#FBBC04', TE: '#EA4335', K: '#46BDC6', 'D/ST': '#7BAAF7' }[pos] || muted)
+          const sortedTeams = [...teams].sort((a, b) => (a.manager?.name || '').localeCompare(b.manager?.name || ''))
+          const activeTeam = teams.find(t => t.id === rosterTeamId) || sortedTeams[0]
+          const entries = rosterEntries.filter(e => e.team_id === activeTeam?.id)
+          const lineup = projectedWeekLineup(entries, rosterWeek)
+          const seasonFpts = arr => arr.reduce((s, e) => s + (e.fpts || 0), 0)
+          const seasonAvg = arr => arr.reduce((s, e) => s + (e.avg_pts || 0), 0)
+
+          const rHeader = () => (
+            <div style={{ display: 'grid', gridTemplateColumns: effectiveMobile ? '50px 1fr 50px' : '56px 1fr 70px 80px 70px', padding: '8px 14px', borderBottom: `1px solid ${border}`, background: cardBg }}>
+              <span style={{ fontSize: '9px', letterSpacing: '0.1em', textTransform: 'uppercase', color: muted }}>Slot</span>
+              <span style={{ fontSize: '9px', letterSpacing: '0.1em', textTransform: 'uppercase', color: muted }}>Player</span>
+              <span style={{ fontSize: '9px', letterSpacing: '0.1em', textTransform: 'uppercase', color: muted, textAlign: 'right' }}>Proj</span>
+              {!effectiveMobile && <span style={{ fontSize: '9px', letterSpacing: '0.1em', textTransform: 'uppercase', color: muted, textAlign: 'right' }}>Season FPTS</span>}
+              {!effectiveMobile && <span style={{ fontSize: '9px', letterSpacing: '0.1em', textTransform: 'uppercase', color: muted, textAlign: 'right' }}>Avg</span>}
             </div>
-          </div>
-        )}
+          )
+
+          const rRow = (e, i, slot) => (
+            <div key={e.id} style={{ display: 'grid', gridTemplateColumns: effectiveMobile ? '50px 1fr 50px' : '56px 1fr 70px 80px 70px', alignItems: 'center', padding: '9px 14px', borderBottom: `1px solid ${border}`, background: i % 2 === 0 ? 'transparent' : rowAlt }}>
+              <span style={{ fontSize: '9px', fontWeight: '700', letterSpacing: '0.06em', color: rosterPosColor(slot === 'FLEX' ? e.player?.position : slot), background: rosterPosColor(slot === 'FLEX' ? e.player?.position : slot) + '18', padding: '2px 5px', textAlign: 'center', width: 'fit-content' }}>
+                {slot}
+              </span>
+              <span style={{ fontFamily: "'Playfair Display', serif", fontSize: '13px', color: text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingRight: '8px' }}>
+                {e.player?.name || '—'}
+              </span>
+              <span style={{ fontSize: '12px', fontWeight: '500', color: text, textAlign: 'right' }}>{e.proj != null ? e.proj.toFixed(1) : '—'}</span>
+              {!effectiveMobile && <span style={{ fontSize: '12px', color: muted, textAlign: 'right' }}>{e.fpts != null ? e.fpts.toFixed(1) : '—'}</span>}
+              {!effectiveMobile && <span style={{ fontSize: '12px', color: muted, textAlign: 'right' }}>{e.avg_pts != null ? e.avg_pts.toFixed(1) : '—'}</span>}
+            </div>
+          )
+
+          const rTotals = (label, projTotal, fptsTotal, avgTotal) => (
+            <div style={{ display: 'grid', gridTemplateColumns: effectiveMobile ? '50px 1fr 50px' : '56px 1fr 70px 80px 70px', alignItems: 'center', padding: '9px 14px', background: d ? 'rgba(255,255,255,0.03)' : 'rgba(13,33,82,0.04)' }}>
+              <span />
+              <span style={{ fontSize: '10px', letterSpacing: '0.12em', textTransform: 'uppercase', color: muted }}>{label}</span>
+              <span style={{ fontSize: '13px', fontWeight: '700', color: gold, textAlign: 'right' }}>{projTotal.toFixed(1)}</span>
+              {!effectiveMobile && <span style={{ fontSize: '12px', color: muted, textAlign: 'right' }}>{fptsTotal.toFixed(1)}</span>}
+              {!effectiveMobile && <span style={{ fontSize: '12px', color: muted, textAlign: 'right' }}>{avgTotal.toFixed(1)}</span>}
+            </div>
+          )
+
+          return (
+            <div style={{ marginBottom: '64px' }}>
+              <SectionLabel id="rosters">Rosters</SectionLabel>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '20px' }}>
+                <select value={activeTeam?.id || ''} onChange={e => setRosterTeamId(e.target.value)} style={{ background: d ? '#111' : '#e8e4dc', border: `1px solid ${border}`, color: text, padding: '8px 12px', fontSize: '13px', fontFamily: "'Inter', sans-serif", outline: 'none' }}>
+                  {sortedTeams.map(t => <option key={t.id} value={t.id}>{t.manager?.name || t.team_name}</option>)}
+                </select>
+                <select value={rosterWeek} onChange={e => setRosterWeek(parseInt(e.target.value))} style={{ background: d ? '#111' : '#e8e4dc', border: `1px solid ${border}`, color: text, padding: '8px 12px', fontSize: '13px', fontFamily: "'Inter', sans-serif", outline: 'none' }}>
+                  {Array.from({ length: 17 }, (_, i) => i + 1).map(w => <option key={w} value={w}>Week {w} Proj</option>)}
+                </select>
+              </div>
+
+              {activeTeam && (
+                <div>
+                  <div style={{ padding: '10px 14px', fontSize: '11px', letterSpacing: '0.15em', textTransform: 'uppercase', color: muted, background: cardBg, borderBottom: `1px solid ${border}` }}>
+                    {activeTeam.team_name} · Starters
+                  </div>
+                  {rHeader()}
+                  {entries.length === 0 ? (
+                    <div style={{ padding: '16px', fontSize: '12px', color: muted, borderBottom: `1px solid ${border}` }}>No roster on file.</div>
+                  ) : (
+                    <>
+                      {lineup.starters.map((e, i) => rRow(e, i, e.slot))}
+                      {rTotals('Starters Total', lineup.total, seasonFpts(lineup.starters), seasonAvg(lineup.starters))}
+
+                      <div style={{ padding: '10px 14px', fontSize: '11px', letterSpacing: '0.15em', textTransform: 'uppercase', color: muted, background: cardBg, borderTop: `1px solid ${border}`, borderBottom: `1px solid ${border}` }}>
+                        Bench
+                      </div>
+                      {rHeader()}
+                      {lineup.bench.length === 0 ? (
+                        <div style={{ padding: '16px', fontSize: '12px', color: muted, borderBottom: `1px solid ${border}` }}>No bench players.</div>
+                      ) : (
+                        <>
+                          {lineup.bench.map((e, i) => rRow(e, i, e.player?.position))}
+                          {rTotals('Bench Total', lineup.bench.reduce((s, e) => s + (e.proj || 0), 0), seasonFpts(lineup.bench), seasonAvg(lineup.bench))}
+                        </>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+          )
+        })()}
 
         {/* ── SECTION 2: STANDINGS ── */}
         {standings.length > 0 && (
