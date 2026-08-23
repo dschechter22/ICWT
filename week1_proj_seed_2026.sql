@@ -1,8 +1,13 @@
 -- ICWT 2026-27 Week 1 per-player projections, from ESPN roster pages.
 -- Stored as roster_entries.stats->'proj'->'1' so lib/predictions.js's
 -- projectedWeekScore() can build real Week 1 forward lines instead of
--- treating Week 1 as a coin flip. Safe to re-run (jsonb_set overwrites
--- just the 'proj.1' key, leaving any other stats data untouched).
+-- treating Week 1 as a coin flip. Safe to re-run.
+--
+-- Builds the nested {proj: {1: ...}} object with || merges rather than
+-- jsonb_set(), since jsonb_set only creates the *last* segment of a path
+-- when missing -- with existing stats of '{}' (no 'proj' key at all) it
+-- silently no-ops on a multi-level path like '{proj,1}' instead of erroring,
+-- which is exactly what happened the first time through.
 
 with proj_data (manager_name, player_name, proj) as (
   values
@@ -176,6 +181,10 @@ resolved as (
   join roster_entries re on re.team_id = t.id and re.player_id = p.id
 )
 update roster_entries
-set stats = jsonb_set(coalesce(stats, '{}'::jsonb), '{proj,1}', to_jsonb(resolved.proj::numeric), true)
+set stats = coalesce(roster_entries.stats, '{}'::jsonb)
+  || jsonb_build_object(
+       'proj',
+       coalesce(roster_entries.stats -> 'proj', '{}'::jsonb) || jsonb_build_object('1', resolved.proj)
+     )
 from resolved
 where roster_entries.id = resolved.roster_entry_id;
