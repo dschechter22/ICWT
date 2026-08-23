@@ -1,22 +1,29 @@
 'use client'
-import { useEffect } from 'react'
 import Nav from '../components/Nav'
 import { useLayout } from '../hooks/useLayout'
+import { FEATURED, GROUPS, SINGLES } from '../lib/nav'
 
 export default function HomePage() {
-  const { d, effectiveMobile, bg, text, muted, border, cardBg } = useLayout()
+  const { effectiveMobile, bg, text, muted, border, cardBg } = useLayout()
 
-  const cards = [
-    { label: 'Champions', href: '/champions', desc: 'Hall of fame, year by year' },
-    { label: 'Standings', href: '/standings', desc: 'All-time career records' },
-    { label: 'H2H', href: '/h2h', desc: 'Head-to-head matchup history' },
-    { label: 'Season', href: '/season', desc: 'Browse any season' },
-    { label: 'All-Time Teams', href: '/all-time-teams', desc: 'Every team season ranked' },
-    { label: 'LJ Index', href: '/lj-index', desc: 'Luck vs skill scatter plot' },
-    { label: 'Rivalries', href: '/rivalries', desc: 'The great feuds' },
-    { label: 'Managers', href: '/managers', desc: 'Career profiles' },
-    { label: 'Power Rankings', href: '/power-rankings', desc: 'Weekly power rankings' },
-  ]
+  const cols = effectiveMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)'
+  // Hairlines come from each card rather than from a container background
+  // showing through the gaps, so a row that does not divide evenly leaves
+  // empty space instead of a block of border colour.
+  const card = {
+    boxShadow: `0 0 0 1px ${border}`,
+    background: cardBg,
+    textDecoration: 'none',
+    display: 'block',
+  }
+
+  const sectionLabel = {
+    fontSize: '11px',
+    letterSpacing: '0.2em',
+    textTransform: 'uppercase',
+    color: muted,
+    marginBottom: '14px',
+  }
 
   return (
     <div style={{ background: bg, minHeight: '100vh', color: text, fontFamily: "'Inter', sans-serif" }}>
@@ -46,12 +53,44 @@ export default function HomePage() {
           ))}
         </div>
 
-        {/* Cards grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: effectiveMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', gap: '1px', background: border }}>
-          {cards.map(({ label, href, desc }) => (
-            <a key={href} href={href} style={{ background: cardBg, padding: effectiveMobile ? '20px 16px' : '32px 28px', textDecoration: 'none', display: 'block', transition: 'background 0.15s' }}>
-              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: effectiveMobile ? '16px' : '20px', color: text, marginBottom: '8px' }}>{label}</div>
-              <div style={{ fontSize: '12px', color: muted, lineHeight: 1.5 }}>{desc}</div>
+        {/* The pages you land on when you just want to get somewhere */}
+        <div style={{ display: 'grid', gridTemplateColumns: effectiveMobile ? '1fr' : `repeat(${FEATURED.length}, 1fr)`, gap: '1px', marginBottom: effectiveMobile ? '44px' : '64px' }}>
+          {FEATURED.map(({ label, href, desc }) => (
+            <a key={href} href={href} style={{ ...card, padding: effectiveMobile ? '24px 20px' : '36px 32px' }}>
+              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: effectiveMobile ? '24px' : '30px', color: text, marginBottom: '10px', lineHeight: 1.15 }}>
+                {label}
+              </div>
+              <div style={{ fontSize: '13px', color: muted, lineHeight: 1.5 }}>{desc}</div>
+            </a>
+          ))}
+        </div>
+
+        {/* One card row per menu, in the same order and grouping the nav uses */}
+        {GROUPS.map(({ label, featured, items }) => {
+          // The featured tile above already covers this section's landing page.
+          const rest = items.filter(([, href]) => href !== featured?.href)
+          return (
+            <div key={label} style={{ marginBottom: effectiveMobile ? '36px' : '52px' }}>
+              <div style={sectionLabel}>{label}</div>
+              <div style={{ display: 'grid', gridTemplateColumns: cols, gap: '1px' }}>
+                {rest.map(([itemLabel, href, desc]) => (
+                  <a key={`${label}-${href}`} href={href} style={{ ...card, padding: effectiveMobile ? '20px 16px' : '28px 24px' }}>
+                    <div style={{ fontFamily: "'Playfair Display', serif", fontSize: effectiveMobile ? '16px' : '20px', color: text, marginBottom: '8px' }}>
+                      {itemLabel}
+                    </div>
+                    <div style={{ fontSize: '12px', color: muted, lineHeight: 1.5 }}>{desc}</div>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )
+        })}
+
+        {/* Everything that never needed a menu of its own */}
+        <div style={{ display: 'flex', gap: effectiveMobile ? '18px' : '28px', flexWrap: 'wrap', borderTop: `1px solid ${border}`, paddingTop: '20px' }}>
+          {SINGLES.map(({ label, href }) => (
+            <a key={href} href={href} style={{ fontSize: '11px', letterSpacing: '0.15em', textTransform: 'uppercase', color: muted, textDecoration: 'none' }}>
+              {label}
             </a>
           ))}
         </div>

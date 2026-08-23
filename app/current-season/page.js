@@ -335,8 +335,8 @@ export default function CurrentSeasonPage() {
   const hStyle = (align = 'left') => ({ padding: '10px 14px', fontSize: '10px', letterSpacing: '0.15em', textTransform: 'uppercase', color: muted, textAlign: align, borderBottom: `1px solid ${border}`, fontWeight: '500', whiteSpace: 'nowrap' })
   const cStyle = (align = 'left') => ({ padding: '12px 14px', fontSize: '13px', textAlign: align, borderBottom: `1px solid ${border}`, color: text, whiteSpace: 'nowrap' })
 
-  const SectionLabel = ({ children }) => (
-    <p style={{ fontSize: '10px', letterSpacing: '0.25em', textTransform: 'uppercase', color: muted, marginBottom: '20px' }}>{children}</p>
+  const SectionLabel = ({ id, children }) => (
+    <p id={id} style={{ fontSize: '10px', letterSpacing: '0.25em', textTransform: 'uppercase', color: muted, marginBottom: '20px' }}>{children}</p>
   )
 
   const StatCard = ({ label, value, sub, color }) => (
@@ -432,7 +432,7 @@ export default function CurrentSeasonPage() {
         {/* ── SECTION 2: STANDINGS ── */}
         {standings.length > 0 && (
           <div style={{ marginBottom: '64px' }}>
-            <SectionLabel>Standings</SectionLabel>
+            <SectionLabel id="standings">Standings</SectionLabel>
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', borderTop: `1px solid ${border}` }}>
                 <thead>
@@ -480,7 +480,7 @@ export default function CurrentSeasonPage() {
         {/* ── SECTION 3: POWER RANKINGS ── */}
         {ranked.length > 0 && (
           <div style={{ marginBottom: '64px' }}>
-            <SectionLabel>Power Rankings</SectionLabel>
+            <SectionLabel id="power-rankings">Power Rankings</SectionLabel>
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', borderTop: `1px solid ${border}` }}>
                 <thead>
@@ -523,7 +523,7 @@ export default function CurrentSeasonPage() {
         {/* ── SECTION 4: LJ INDEX ── */}
         {ljRanked.length > 0 && (
           <div style={{ marginBottom: '64px' }}>
-            <SectionLabel>LJ Index — All-Play Win %</SectionLabel>
+            <SectionLabel id="lj-index">LJ Index — All-Play Win %</SectionLabel>
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', borderTop: `1px solid ${border}` }}>
                 <thead>
